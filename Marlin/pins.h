@@ -1550,6 +1550,13 @@
 
 #define LARGE_FLASH        true
 
+// Extra LED Pins used by MSM Bot for LEDs
+#ifdef USE_LEDS
+#define LED_GREEN_PIN      10
+#define LED_RED_PIN        11
+#define LED_BUTTON_PIN     12
+#endif
+
 #define X_STEP_PIN          0
 #define X_DIR_PIN           1
 #define X_ENABLE_PIN       39
