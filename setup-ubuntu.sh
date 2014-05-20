@@ -10,6 +10,7 @@ DEPENDENCIES_URL=https://github.com/MissionSt/Marlin/archive/Printrboard-Depende
 TARGET_DIR=$ARDUINO_INSTALL_DIR/hardware
 STRIP_COUNT=4
 
+apt-get update -y
 apt-get install -yq make arduino-core curl git
 curl -L $DEPENDENCIES_URL | tar -zx -C $TARGET_DIR --strip-components=$STRIP_COUNT
 
