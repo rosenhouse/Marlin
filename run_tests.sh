@@ -83,3 +83,4 @@ run
 MOTHERBOARD=3 DELTA=1
 run
 
+echo "All tests passed ok!"
