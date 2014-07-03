@@ -22,6 +22,10 @@ env:
     - DEPLOY_PATH=s3://missionst-factory/$TRAVIS_BRANCH.hex.gz
     - AWS_DEFAULT_REGION=us-west-2
     - AWS_ACCESS_KEY_ID=AKIAIGUXLGAT2EZ7PAUQ
-    # AWS_SECRET_ACCESS_KEY:
+
+    # the thing below is the string
+    #   "AWS_SECRET_ACCESS_KEY=$the_key"
+    # but encrypted.  Travis automatically decrypts it for us.
+    # See http://docs.travis-ci.com/user/encryption-keys/
     - secure: QbzyQeCEhWHExebKar9OZkiRnkErzn+x9Ybisee8PJlgKNSgjqdPqgl8vL3gjaBx6grdYAUik5OGaQDfkVko4BmiUzvJw/aGKu+VgX+k3hQjluM+kZYHO41eGhDdIbZZpSSTvpqp0C365k0scSSgxH+AbbndA2AX9vEnIe2O+ZY=
 

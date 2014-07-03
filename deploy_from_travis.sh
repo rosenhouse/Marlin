@@ -10,7 +10,7 @@ git reset --hard
 git clean -d -x -f
 
 aws s3 cp s3://missionst-factory/uploader.tar.gz uploader.tar.gz
-tar xvzf uploader.tar.gz
+tar xzf uploader.tar.gz
 
 (cd Marlin \
     && make clean \
