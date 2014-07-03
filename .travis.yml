@@ -1,8 +1,14 @@
-language: cpp
+language: python
+# but not really.  it's really C for Arduino, but that stuff is installed by
+# our install step, and we need a Python environment to do the deploy steps
 
 install: sudo ./setup-ubuntu.sh
 
 script: ./run_tests.sh
+
+after_script:
+  - travis_retry pip install boto awscli
+  - if [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_BRANCH" == release/firmware/* ]]; then ./deploy_from_travis.sh; fi
 
 notifications:
   email:
@@ -13,3 +19,13 @@ env:
   global:
     - ARDUINO_INSTALL_DIR=/usr/share/arduino
     - AVR_TOOLS_PATH=/usr/bin/
+    - DEPLOY_PATH=s3://missionst-factory/$TRAVIS_BRANCH.hex.gz
+    - AWS_DEFAULT_REGION=us-west-2
+    - AWS_ACCESS_KEY_ID=AKIAIGUXLGAT2EZ7PAUQ
+
+    # the thing below is the string
+    #   "AWS_SECRET_ACCESS_KEY=$the_key"
+    # but encrypted.  Travis automatically decrypts it for us.
+    # See http://docs.travis-ci.com/user/encryption-keys/
+    - secure: QbzyQeCEhWHExebKar9OZkiRnkErzn+x9Ybisee8PJlgKNSgjqdPqgl8vL3gjaBx6grdYAUik5OGaQDfkVko4BmiUzvJw/aGKu+VgX+k3hQjluM+kZYHO41eGhDdIbZZpSSTvpqp0C365k0scSSgxH+AbbndA2AX9vEnIe2O+ZY=
+
