@@ -2,6 +2,13 @@
 
 # script to call from Travis to build a binary and upload it to S3
 
+V=`cat missionst-version`
+if [ "$TRAVIS_BRANCH" != "release/firmware/$V"]; then
+    echo "Version mismatch between branch name and missionst-version file"
+    echo "Not deploying"
+    exit 1
+fi
+
 ARTIFACT_PATH=Marlin/applet/Marlin.hex
 export PYTHONPATH=$TRAVIS_BUILD_DIR
 
