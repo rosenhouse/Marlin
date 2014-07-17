@@ -520,6 +520,21 @@ void setup()
   #ifdef DIGIPOT_I2C
     digipot_i2c_init();
   #endif
+
+  // Turn all LEDs on at Startup
+  #ifdef MSM_Printeer
+        pinMode(LED_GREEN_PIN,OUTPUT);
+        digitalWrite(LED_GREEN_PIN,HIGH);
+     
+        pinMode(LED_RED_PIN,OUTPUT);
+        digitalWrite(LED_RED_PIN,HIGH);
+     
+        pinMode(LED_BUTTON_PIN, OUTPUT);
+        digitalWrite(LED_BUTTON_PIN,HIGH);
+  #endif
+
+
+
 }
 
 
@@ -1633,7 +1648,6 @@ void process_commands()
       #ifdef CUSTOM_G_CODES
       case GREEN_LED_ON: 
       {
-        pinMode(LED_GREEN_PIN,OUTPUT);
         digitalWrite(LED_GREEN_PIN,HIGH);
         SERIAL_PROTOCOLPGM("GREEN LED ON \n");
       }
@@ -1641,7 +1655,6 @@ void process_commands()
 
       case GREEN_LED_OFF: 
       {
-        pinMode(LED_GREEN_PIN,OUTPUT);
         digitalWrite(LED_GREEN_PIN,LOW);
         SERIAL_PROTOCOLPGM("GREEN LED OFF \n");
       }
@@ -1649,7 +1662,6 @@ void process_commands()
 
       case RED_LED_ON: 
       {       
-        pinMode(LED_RED_PIN,OUTPUT);
         digitalWrite(LED_RED_PIN,HIGH);
         SERIAL_PROTOCOLPGM("RED LED ON \n");
       }
@@ -1657,7 +1669,6 @@ void process_commands()
 
       case RED_LED_OFF: 
       {
-        pinMode(LED_RED_PIN,OUTPUT);
         digitalWrite(LED_RED_PIN,LOW);
         SERIAL_PROTOCOLPGM("RED LED OFF \n");
       }
@@ -1665,7 +1676,6 @@ void process_commands()
 
       case BUTTON_LED_ON: 
       {       
-        pinMode(LED_BUTTON_PIN, OUTPUT);
         digitalWrite(LED_BUTTON_PIN,HIGH);
         SERIAL_PROTOCOLPGM("RED LED OFF \n");
       }
@@ -1673,7 +1683,6 @@ void process_commands()
 
       case BUTTON_LED_OFF:
       {
-        pinMode(LED_BUTTON_PIN, OUTPUT);
         digitalWrite(LED_BUTTON_PIN,LOW);
         SERIAL_PROTOCOLPGM("BUTTON LED OFF \n");
       }
