@@ -82,6 +82,14 @@
 // G91 - Use Relative Coordinates
 // G92 - Set current position to coordinates given
 
+//Custom MSM G-Codes
+// G411 - Green LED ON
+// G412 - Green LED OFF
+// G413 - Red LED ON
+// G414 - Red LED OFF
+// G415 - Button LED ON
+// G416 - Button LED OFF    
+
 // M Codes
 // M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
 // M1   - Same as M0
@@ -512,6 +520,21 @@ void setup()
   #ifdef DIGIPOT_I2C
     digipot_i2c_init();
   #endif
+
+  // Turn all LEDs on at Startup
+  #ifdef MSM_Printeer
+        pinMode(LED_GREEN_PIN,OUTPUT);
+        digitalWrite(LED_GREEN_PIN,HIGH);
+     
+        pinMode(LED_RED_PIN,OUTPUT);
+        digitalWrite(LED_RED_PIN,HIGH);
+     
+        pinMode(LED_BUTTON_PIN, OUTPUT);
+        digitalWrite(LED_BUTTON_PIN,HIGH);
+  #endif
+
+
+
 }
 
 
@@ -865,9 +888,9 @@ static void set_bed_level_equation_3pts(float z_at_pt_1, float z_at_pt_2, float 
 
     plan_bed_level_matrix.set_to_identity();
 
-    vector_3 pt1 = vector_3(ABL_PROBE_PT_1_X, ABL_PROBE_PT_1_Y, z_at_pt_1);
-    vector_3 pt2 = vector_3(ABL_PROBE_PT_2_X, ABL_PROBE_PT_2_Y, z_at_pt_2);
-    vector_3 pt3 = vector_3(ABL_PROBE_PT_3_X, ABL_PROBE_PT_3_Y, z_at_pt_3);
+    vector_3 pt1 = vector_3(ABL_PROBE_PT_1_X, ABL_PROBE_PT_1_Y, ABL_Z_DIRECTION * z_at_pt_1);
+    vector_3 pt2 = vector_3(ABL_PROBE_PT_2_X, ABL_PROBE_PT_2_Y, ABL_Z_DIRECTION * z_at_pt_2);
+    vector_3 pt3 = vector_3(ABL_PROBE_PT_3_X, ABL_PROBE_PT_3_Y, ABL_Z_DIRECTION * z_at_pt_3);
 
     vector_3 from_2_to_1 = (pt1 - pt2).get_normal();
     vector_3 from_2_to_3 = (pt3 - pt2).get_normal();
@@ -1620,6 +1643,52 @@ void process_commands()
         }
       }
       break;
+
+      // Custom G-Codes for MSM
+      #ifdef CUSTOM_G_CODES
+      case GREEN_LED_ON: 
+      {
+        digitalWrite(LED_GREEN_PIN,HIGH);
+        SERIAL_PROTOCOLPGM("GREEN LED ON \n");
+      }
+      break;
+
+      case GREEN_LED_OFF: 
+      {
+        digitalWrite(LED_GREEN_PIN,LOW);
+        SERIAL_PROTOCOLPGM("GREEN LED OFF \n");
+      }
+      break;
+
+      case RED_LED_ON: 
+      {       
+        digitalWrite(LED_RED_PIN,HIGH);
+        SERIAL_PROTOCOLPGM("RED LED ON \n");
+      }
+      break;
+
+      case RED_LED_OFF: 
+      {
+        digitalWrite(LED_RED_PIN,LOW);
+        SERIAL_PROTOCOLPGM("RED LED OFF \n");
+      }
+      break;
+
+      case BUTTON_LED_ON: 
+      {       
+        digitalWrite(LED_BUTTON_PIN,HIGH);
+        SERIAL_PROTOCOLPGM("RED LED OFF \n");
+      }
+      break;
+
+      case BUTTON_LED_OFF:
+      {
+        digitalWrite(LED_BUTTON_PIN,LOW);
+        SERIAL_PROTOCOLPGM("BUTTON LED OFF \n");
+      }
+      break;
+      #endif
+
     }
   }
 

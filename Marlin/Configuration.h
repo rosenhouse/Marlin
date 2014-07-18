@@ -178,11 +178,17 @@
   #define K1 0.95 //smoothing factor within the PID
   #define PID_dT ((OVERSAMPLENR * 8.0)/(F_CPU / 64.0 / 256.0)) //sampling period of the temperature routine
 
+
+// MSM Bot
+    #define  DEFAULT_Kp 30.31
+    #define  DEFAULT_Ki 3.56
+    #define  DEFAULT_Kd 64.56
+
 // If you are using a pre-configured hotend then you can use one of the value sets by uncommenting it
 // Ultimaker
-    #define  DEFAULT_Kp 22.2
-    #define  DEFAULT_Ki 1.08
-    #define  DEFAULT_Kd 114
+//    #define  DEFAULT_Kp 22.2
+//    #define  DEFAULT_Ki 1.08
+//    #define  DEFAULT_Kd 114
 
 // MakerGear
 //    #define  DEFAULT_Kp 7.0
@@ -276,8 +282,8 @@ const bool X_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 const bool Y_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Z_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
-const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 //#define DISABLE_MAX_ENDSTOPS
 //#define DISABLE_MIN_ENDSTOPS
 
@@ -298,27 +304,27 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define DISABLE_Z false
 #define DISABLE_E false // For all extruders
 
-#define INVERT_X_DIR true    // for Mendel set to false, for Orca set to true
+#define INVERT_X_DIR false   // for Mendel set to false, for Orca set to true
 #define INVERT_Y_DIR true    // for Mendel set to true, for Orca set to false
-#define INVERT_Z_DIR false     // for Mendel set to false, for Orca set to true
-#define INVERT_E0_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
-#define INVERT_E1_DIR false    // for direct drive extruder v9 set to true, for geared extruder set to false
-#define INVERT_E2_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_Z_DIR false   // for Mendel set to false, for Orca set to true
+#define INVERT_E0_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_E1_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_E2_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
 
 // ENDSTOP SETTINGS:
 // Sets direction of endstops when homing; 1=MAX, -1=MIN
 #define X_HOME_DIR -1
-#define Y_HOME_DIR -1
+#define Y_HOME_DIR 1
 #define Z_HOME_DIR -1
 
 #define min_software_endstops true // If true, axis won't move to coordinates less than HOME_POS.
-#define max_software_endstops true  // If true, axis won't move to coordinates greater than the defined lengths below.
+#define max_software_endstops true // If true, axis won't move to coordinates greater than the defined lengths below.
 
 // Travel limits after homing
-#define X_MAX_POS 140
+#define X_MAX_POS 154
 #define X_MIN_POS 0
-#define Y_MAX_POS 100
-#define Y_MIN_POS 0
+#define Y_MAX_POS 105 
+#define Y_MIN_POS 0 
 #define Z_MAX_POS 125
 #define Z_MIN_POS 0
 
@@ -365,28 +371,30 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
     // with no grid, just probe 3 arbitrary points.  A simple cross-product
     // is used to esimate the plane of the print bed
 
-      #define ABL_PROBE_PT_1_X -11
-      #define ABL_PROBE_PT_1_Y -15
-      #define ABL_PROBE_PT_2_X -11
-      #define ABL_PROBE_PT_2_Y 75
-      #define ABL_PROBE_PT_3_X 121
-      #define ABL_PROBE_PT_3_Y -15
+      #define ABL_PROBE_PT_1_X -10
+      #define ABL_PROBE_PT_1_Y 121
+      #define ABL_PROBE_PT_2_X -10 
+      #define ABL_PROBE_PT_2_Y 32
+      #define ABL_PROBE_PT_3_X 114 
+      #define ABL_PROBE_PT_3_Y 122
 
   #endif // AUTO_BED_LEVELING_GRID
 
 
   // these are the offsets to the probe relative to the extruder tip (Hotend - Probe)
-  #define X_PROBE_OFFSET_FROM_EXTRUDER -19
-  #define Y_PROBE_OFFSET_FROM_EXTRUDER -23
-  #define Z_PROBE_OFFSET_FROM_EXTRUDER -1.8
+  #define X_PROBE_OFFSET_FROM_EXTRUDER -13.6 
+  #define Y_PROBE_OFFSET_FROM_EXTRUDER 27
+  #define Z_PROBE_OFFSET_FROM_EXTRUDER 0
 
-  #define Z_RAISE_BEFORE_HOMING 5       // (in mm) Raise Z before homing (G28) for Probe Clearance.
+  #define ABL_Z_DIRECTION -1 // set to 1 or -1 to control ABL correction direction.  relates to *_HOME_DIR
+
+  #define Z_RAISE_BEFORE_HOMING 3       // (in mm) Raise Z before homing (G28) for Probe Clearance.
                                         // Be sure you have this distance over your Z_MAX_POS in case
 
   #define XY_TRAVEL_SPEED 2000         // X and Y axis travel speed between probes, in mm/min
 
-  #define Z_RAISE_BEFORE_PROBING 5    //How much the extruder will be raised before traveling to the first probing point.
-  #define Z_RAISE_BETWEEN_PROBINGS 5  //How much the extruder will be raised when traveling from between next probing points
+  #define Z_RAISE_BEFORE_PROBING 3    //How much the extruder will be raised before traveling to the first probing point.
+  #define Z_RAISE_BETWEEN_PROBINGS 3  //How much the extruder will be raised when traveling from between next probing points
 
 
   //If defined, the Probe servo will be turned on only during movement and then turned off to avoid jerk
@@ -408,8 +416,8 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
   #ifdef Z_SAFE_HOMING
 
-    #define Z_SAFE_HOMING_X_POINT -11    // X point for Z homing when homing all axis (G28)
-    #define Z_SAFE_HOMING_Y_POINT -16  // Y point for Z homing when homing all axis (G28)
+    #define Z_SAFE_HOMING_X_POINT -10  // X point for Z homing when homing all axis (G28)
+    #define Z_SAFE_HOMING_Y_POINT 121   // Y point for Z homing when homing all axis (G28)
 
 
 
@@ -443,15 +451,15 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {50*60, 50*60, 2*60, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {50*60, 50*60, 3*60, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {80,80,2667,509}  // default steps per unit for Ultimaker
-#define DEFAULT_MAX_FEEDRATE          {400, 400, 5, 12}    // (mm/sec)
-#define DEFAULT_MAX_ACCELERATION      {3000,3000,100,5000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {80,80,2535,162}       // default steps per unit for Ultimaker
+#define DEFAULT_MAX_FEEDRATE          {400, 400, 3, 12}       // (mm/sec)
+#define DEFAULT_MAX_ACCELERATION      {2500,2500,100,5000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
 
-#define DEFAULT_ACCELERATION          3000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
+#define DEFAULT_ACCELERATION          2500   // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // X, Y, Z and E max acceleration in mm/s^2 for retracts
 
 // Offset of the extruders (uncomment if using more than one and relying on firmware to position when changing).
@@ -469,15 +477,30 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 //=============================Additional Features===========================
 //===========================================================================
 
-// Custom M code points
+#define MSM_Printeer
+#ifdef MSM_Printeer
 #define CUSTOM_M_CODES
+#define CUSTOM_G_CODES
+#define USE_LEDS         // for pins.h
+#endif
+
+// Custom M code points
 #ifdef CUSTOM_M_CODES
   #define CUSTOM_M_CODE_REPORT_BUILD_INFO 850
   #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 851
-  #define Z_PROBE_OFFSET_RANGE_MIN -2
-  #define Z_PROBE_OFFSET_RANGE_MAX 0
+  #define Z_PROBE_OFFSET_RANGE_MIN -3
+  #define Z_PROBE_OFFSET_RANGE_MAX 3
 #endif
 
+// Custom G code points
+#ifdef CUSTOM_G_CODES
+  #define GREEN_LED_ON 411
+  #define GREEN_LED_OFF 412
+  #define RED_LED_ON 413
+  #define RED_LED_OFF 414
+  #define BUTTON_LED_ON 415
+  #define BUTTON_LED_OFF 416
+#endif
 
 // EEPROM
 // The microcontroller can store settings in the EEPROM, e.g. max velocity...
@@ -485,10 +508,10 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 // M501 - reads parameters from EEPROM (if you need reset them after you changed them temporarily).
 // M502 - reverts to the default "factory settings".  You still need to store them in EEPROM afterwards if you want to.
 //define this to enable EEPROM support
-//#define EEPROM_SETTINGS
+#define EEPROM_SETTINGS
 //to disable EEPROM Serial responses and decrease program space by ~1700 byte: comment this out:
 // please keep turned on if you can.
-//#define EEPROM_CHITCHAT
+#define EEPROM_CHITCHAT
 
 // Preheat Constants
 #define PLA_PREHEAT_HOTEND_TEMP 180
