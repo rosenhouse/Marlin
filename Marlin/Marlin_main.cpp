@@ -1646,6 +1646,28 @@ void process_commands()
 
       // Custom G-Codes for MSM
       #ifdef CUSTOM_G_CODES
+
+      case Move_Z_Max:
+      {
+       enable_endstops(true);
+
+       // clear any existing bed level matix
+       plan_bed_level_matrix.set_to_identity();
+
+       feedrate = homing_feedrate[Z_AXIS];
+       
+       // bed until it hits the z_max_endstop
+       float zPosition = Z_MAX_POS * 3;
+       plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
+       st_synchronize();
+
+       // set the current position to Z_MAX position
+       current_position[Z_AXIS] = Z_MAX_POS;
+       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+        
+       endstops_hit_on_purpose();
+      }
+
       case GREEN_LED_ON: 
       {
         digitalWrite(LED_GREEN_PIN,HIGH);
