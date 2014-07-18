@@ -304,10 +304,10 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define DISABLE_Z false
 #define DISABLE_E false // For all extruders
 
-#define INVERT_X_DIR false    // for Mendel set to false, for Orca set to true
-#define INVERT_Y_DIR true   // for Mendel set to true, for Orca set to false
-#define INVERT_Z_DIR false    // for Mendel set to false, for Orca set to true
-#define INVERT_E0_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_X_DIR false   // for Mendel set to false, for Orca set to true
+#define INVERT_Y_DIR true    // for Mendel set to true, for Orca set to false
+#define INVERT_Z_DIR false   // for Mendel set to false, for Orca set to true
+#define INVERT_E0_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E1_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E2_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
 
@@ -386,6 +386,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
   #define Y_PROBE_OFFSET_FROM_EXTRUDER 27
   #define Z_PROBE_OFFSET_FROM_EXTRUDER 0
 
+  #define ABL_Z_DIRECTION -1 // set to 1 or -1 to control ABL correction direction.  relates to *_HOME_DIR
 
   #define Z_RAISE_BEFORE_HOMING 3       // (in mm) Raise Z before homing (G28) for Probe Clearance.
                                         // Be sure you have this distance over your Z_MAX_POS in case
