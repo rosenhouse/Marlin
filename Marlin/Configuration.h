@@ -281,7 +281,7 @@
 const bool X_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Y_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Z_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
-const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+const bool X_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Y_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
 //#define DISABLE_MAX_ENDSTOPS
@@ -388,7 +388,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 
   #define ABL_Z_DIRECTION -1 // set to 1 or -1 to control ABL correction direction.  relates to *_HOME_DIR
 
-  #define Z_RAISE_BEFORE_HOMING 3       // (in mm) Raise Z before homing (G28) for Probe Clearance.
+  #define Z_RAISE_BEFORE_HOMING 0       // (in mm) Raise Z before homing (G28) for Probe Clearance.
                                         // Be sure you have this distance over your Z_MAX_POS in case
 
   #define XY_TRAVEL_SPEED 2000         // X and Y axis travel speed between probes, in mm/min
@@ -481,7 +481,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #ifdef MSM_Printeer
 #define CUSTOM_M_CODES
 #define CUSTOM_G_CODES
-#define USE_LEDS         // for pins.h
 #endif
 
 // Custom M code points
@@ -494,6 +493,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 
 // Custom G code points
 #ifdef CUSTOM_G_CODES
+  #define Move_Z_Max 405
   #define GREEN_LED_ON 411
   #define GREEN_LED_OFF 412
   #define RED_LED_ON 413

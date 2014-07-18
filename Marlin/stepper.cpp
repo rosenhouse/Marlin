@@ -69,6 +69,9 @@ volatile long endstops_stepsTotal,endstops_stepsDone;
 static volatile bool endstop_x_hit=false;
 static volatile bool endstop_y_hit=false;
 static volatile bool endstop_z_hit=false;
+#ifdef MSM_Printeer
+static volatile bool endstop_z_max_hit=false;
+#endif
 #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
 bool abort_on_endstop_hit = false;
 #endif
@@ -170,9 +173,14 @@ asm volatile ( \
 #define DISABLE_STEPPER_DRIVER_INTERRUPT() TIMSK1 &= ~(1<<OCIE1A)
 
 
+
 void checkHitEndstops()
 {
+#ifdef MSM_Printeer
+ if( endstop_x_hit || endstop_y_hit || endstop_z_hit || endstop_z_max_hit) {
+#else
  if( endstop_x_hit || endstop_y_hit || endstop_z_hit) {
+#endif
    SERIAL_ECHO_START;
    SERIAL_ECHOPGM(MSG_ENDSTOPS_HIT);
    if(endstop_x_hit) {
@@ -187,10 +195,19 @@ void checkHitEndstops()
      SERIAL_ECHOPAIR(" Z:",(float)endstops_trigsteps[Z_AXIS]/axis_steps_per_unit[Z_AXIS]);
      LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
    }
+   #ifdef MSM_Printeer
+   if(endstop_z_max_hit) {
+     SERIAL_ECHOPAIR(" Z_max:",(float)endstops_trigsteps[Z_AXIS]/axis_steps_per_unit[Z_AXIS]);
+     LCD_MESSAGEPGM(MSG_ENDSTOPS_HIT "Z");
+   }
+   #endif
    SERIAL_ECHOLN("");
    endstop_x_hit=false;
    endstop_y_hit=false;
    endstop_z_hit=false;
+   #ifdef MSM_Printeer 
+    endstop_z_max_hit=false;
+   #endif
 #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
    if (abort_on_endstop_hit)
    {
@@ -210,6 +227,9 @@ void endstops_hit_on_purpose()
   endstop_x_hit=false;
   endstop_y_hit=false;
   endstop_z_hit=false;
+  #ifdef MSM_Printeer
+    endstop_z_max_hit=false;
+  #endif
 }
 
 void enable_endstops(bool check)
@@ -519,7 +539,11 @@ ISR(TIMER1_COMPA_vect)
           bool z_max_endstop=(READ(Z_MAX_PIN) != Z_MAX_ENDSTOP_INVERTING);
           if(z_max_endstop && old_z_max_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
-            endstop_z_hit=true;
+            #ifdef MSM_Printeer
+              endstop_z_max_hit=true;
+            #else
+              endstop_z_hit=true;
+            #endif
             step_events_completed = current_block->step_event_count;
           }
           old_z_max_endstop = z_max_endstop;
