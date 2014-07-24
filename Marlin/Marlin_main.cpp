@@ -1667,6 +1667,7 @@ void process_commands()
         
        endstops_hit_on_purpose();
       }
+      break;
 
       case GREEN_LED_ON: 
       {
