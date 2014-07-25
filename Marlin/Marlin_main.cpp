@@ -920,7 +920,6 @@ bool touching_print_surface(int threshold) {
 static void run_z_probe() {
     plan_bed_level_matrix.set_to_identity();
     feedrate = homing_feedrate[Z_AXIS];
-	#ifdef FSR_BED_LEVELING
     // move down until you find the bed
     float zPosition = -10;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
@@ -2794,8 +2793,13 @@ void process_commands()
     }
 	case 505: // M505 Test function for FSR ABL
 	{
+		for (int i=10; i>0; i--){
+		int fsr_starting_level += rawTemp1Sample()
+		}
+		fsr_starting_level /= 10;
+		
 		SERIAL_ECHO_START;
-        SERIAL_ECHOLNPGM("M505 run");
+        SERIAL_ECHOLNPGM(fsr_starting_level);
         SERIAL_PROTOCOLLN("");
 	}
     break;
