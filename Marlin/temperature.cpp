@@ -1158,7 +1158,8 @@ ISR(TIMER0_COMPB_vect)
       break;
     case 5: // Measure TEMP_1
       #if defined(TEMP_1_PIN) && (TEMP_1_PIN > -1)
-        raw_temp_1_value += ADC;
+		raw_temp_1_sample = ADC;
+		raw_temp_1_value += raw_temp_1_sample;
       #endif
       temp_state = 6;
       break;
