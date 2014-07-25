@@ -336,7 +336,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define ENABLE_AUTO_BED_LEVELING // Delete the comment to enable (remove // at the start of the line)
 
 #ifdef ENABLE_AUTO_BED_LEVELING
-
+#define FSR_BED_LEVELING // Use force sensing resistors to perform ABL
 // There are 2 different ways to pick the X and Y locations to probe:
 
 //  - "grid" mode
@@ -481,7 +481,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #ifdef MSM_Printeer
 #define CUSTOM_M_CODES
 #define CUSTOM_G_CODES
-#define FSR_Z
 #endif
 
 // Custom M code points
