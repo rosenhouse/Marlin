@@ -913,10 +913,14 @@ static void set_bed_level_equation_3pts(float z_at_pt_1, float z_at_pt_2, float 
 
 #endif // AUTO_BED_LEVELING_GRID
 
+bool touching_print_surface(int threshold) {
+	return rawTemp1Sample() < threshold;
+}
+
 static void run_z_probe() {
     plan_bed_level_matrix.set_to_identity();
     feedrate = homing_feedrate[Z_AXIS];
-
+	#ifdef FSR_BED_LEVELING
     // move down until you find the bed
     float zPosition = -10;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
@@ -2789,6 +2793,12 @@ void process_commands()
     {
         Config_PrintSettings();
     }
+	case 505: // M505 Test function for FSR ABL
+	{
+		SERIAL_ECHO_START;
+        SERIAL_ECHOLNPGM("M505 run");
+        SERIAL_PROTOCOLLN("");
+	}
     break;
     #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
     case 540:
