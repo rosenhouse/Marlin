@@ -913,9 +913,11 @@ static void set_bed_level_equation_3pts(float z_at_pt_1, float z_at_pt_2, float 
 
 #endif // AUTO_BED_LEVELING_GRID
 
+#ifdef FSR_BED_LEVELING
 bool touching_print_surface(int threshold) {
-	return rawTemp1Sample() < threshold;
+	return rawTemp1Sample() > threshold; // With pull-down resistor, increases when pressed
 }
+#endif
 
 static void run_z_probe() {
     plan_bed_level_matrix.set_to_identity();
