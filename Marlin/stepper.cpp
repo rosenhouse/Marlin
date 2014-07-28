@@ -544,7 +544,7 @@ ISR(TIMER1_COMPA_vect)
 		// Rolling weighted average adjustment
 		fsr_rolling_avg *= fsr_weighting;
 		fsr_rolling_avg += fsr_average;
-		fsr_rolling_avg /= (fsr_weighting+1)
+		fsr_rolling_avg /= (fsr_weighting+1);
 		  // End of FSR ABL
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
 		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
