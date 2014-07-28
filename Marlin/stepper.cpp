@@ -40,7 +40,6 @@
 block_t *current_block;  // A pointer to the block currently being traced
 #ifdef FSR_BED_LEVELING
 bool fsr_z_endstop;	// Public variable to fix m119 code
-int fsr_rolling_avg = 50; // Public variable declaration for m505
 #endif
 
 
@@ -75,6 +74,9 @@ static volatile bool endstop_y_hit=false;
 static volatile bool endstop_z_hit=false;
 #ifdef MSM_Printeer
 static volatile bool endstop_z_max_hit=false;
+#endif
+#ifdef FSR_BED_LEVELING
+int fsr_rolling_avg;
 #endif
 #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
 bool abort_on_endstop_hit = false;
@@ -523,15 +525,19 @@ ISR(TIMER1_COMPA_vect)
 		// Additional weighting slows the movement of the rolling average
 		int fsr_weighting = 1;
 		// Number of readings to average
-		int fsr_checks = 5;
+		int fsr_checks = 20;
 		bool fsr_trigger = false;
 		// Sample and average for fsr_checks
 		for (int i=fsr_checks; i>0; i--){
 		fsr_average += rawTemp1Sample();
 		}
 		fsr_average /= fsr_checks;
+		if (bool fsr_first_run = false){
+			fsr_rolling_avg = fsr_average;
+			fsr_first_run = true;
+		}
 		// Check if ADC average is above switching threshold
-		if ((fsr_average > 1.1*fsr_rolling_avg) || (fsr_average < .9*fsr_rolling_avg) && (fsr_average > 20)){
+		if ((fsr_average > 1.5*fsr_rolling_avg) || (fsr_average < .8*fsr_rolling_avg) && (fsr_average > 20)){
 			fsr_trigger = true;
 			fsr_z_endstop = true;
 			}
