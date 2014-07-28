@@ -516,12 +516,14 @@ ISR(TIMER1_COMPA_vect)
       {
 	  #if defined (FSR_BED_LEVELING) && defined(TEMP_1_PIN) && TEMP_1_PIN > -1
 		int fsr_average;
-		int threshold = 125;
+		// Number of readings to average
+		int fsr_checks = 5;
+		int threshold = 120;
 		bool fsr_trigger = false;
-		for (int i=10; i>0; i--){
+		for (int i=fsr_checks; i>0; i--){
 		fsr_average += rawTemp1Sample();
 		}
-		fsr_average /= 10;
+		fsr_average /= fsr_checks;
 		// Check if ADC average is above switching threshold
 		if (fsr_average > threshold){
 			fsr_trigger = true;
