@@ -514,8 +514,30 @@ ISR(TIMER1_COMPA_vect)
       count_direction[Z_AXIS]=-1;
       CHECK_ENDSTOPS
       {
-        #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1
-          bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
+	  #if defined (FSR_BED_LEVELING) && defined(TEMP_1_PIN) && TEMP_1_PIN > -1
+		int fsr_average;
+		int threshold = 125;
+		bool fsr_trigger = false;
+		for (int i=10; i>0; i--){
+		fsr_average += rawTemp1Sample();
+		}
+		fsr_average /= 10;
+		// Check if ADC average is above switching threshold
+		if (fsr_average > threshold){
+			fsr_trigger = true;
+			}
+		else{
+			fsr_trigger = false;
+			}
+		// Run endstop triggered logic
+        if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
+            endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
+            endstop_z_hit=true;
+            step_events_completed = current_block->step_event_count;
+        }
+          old_z_min_endstop = fsr_trigger;
+		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
+		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
           if(z_min_endstop && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_z_hit=true;
