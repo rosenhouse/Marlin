@@ -516,16 +516,19 @@ ISR(TIMER1_COMPA_vect)
       {
 	  #if defined (FSR_BED_LEVELING) && defined(TEMP_1_PIN) && TEMP_1_PIN > -1
 		int fsr_average;
+		// Additional weighting slows the movement of the rolling average
+		int fsr_weighting = 3;
+		int fsr_rolling_avg;
 		// Number of readings to average
 		int fsr_checks = 5;
-		int threshold = 120;
 		bool fsr_trigger = false;
+		
 		for (int i=fsr_checks; i>0; i--){
 		fsr_average += rawTemp1Sample();
 		}
 		fsr_average /= fsr_checks;
 		// Check if ADC average is above switching threshold
-		if (fsr_average > threshold){
+		if ((fsr_average > 1.1*fsr_rolling_avg) || (fsr_average < .9*fsr_rolling_avg) && (fsr_average > 20)){
 			fsr_trigger = true;
 			}
 		else{
@@ -537,7 +540,11 @@ ISR(TIMER1_COMPA_vect)
             endstop_z_hit=true;
             step_events_completed = current_block->step_event_count;
         }
-          old_z_min_endstop = fsr_trigger;
+        old_z_min_endstop = fsr_trigger;
+		// Rolling weighted average adjustment
+		fsr_rolling_avg *= fsr_weighting;
+		fsr_rolling_avg += fsr_average;
+		fsr_rolling_avg /= (fsr_weighting+1)
 		  // End of FSR ABL
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
 		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
