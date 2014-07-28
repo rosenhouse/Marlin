@@ -184,7 +184,8 @@
 //===========================================================================
 //=============================imported variables============================
 //===========================================================================
-
+extern bool fsr_z_endstop;
+extern int fsr_rolling_avg;
 
 //===========================================================================
 //=============================public variables=============================
@@ -2316,7 +2317,10 @@ void process_commands()
         SERIAL_PROTOCOLPGM(MSG_Y_MAX);
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
-      #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1
+	  #if defined FSR_BED_LEVELING
+		SERIAL_PROTOCOLPGM(MSG_Z_MIN);
+		SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+      #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
@@ -2796,8 +2800,10 @@ void process_commands()
 		fsr_starting_level /= 10;
 		
 		SERIAL_ECHO_START;
-		SERIAL_ECHOLNPGM("ADC Reading: ");
-        SERIAL_ECHO(fsr_starting_level);
+		SERIAL_ECHOPGM("ADC Reading: ");
+        SERIAL_ECHOLN(fsr_starting_level);
+		SERIAL_ECHOPGM(" Rolling Avg: ");
+		SERIAL_ECHOLN(fsr_rolling_avg);
         SERIAL_PROTOCOLLN("");
 	}
     break;
