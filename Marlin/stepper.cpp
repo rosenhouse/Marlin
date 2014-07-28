@@ -38,6 +38,10 @@
 //=============================public variables  ============================
 //===========================================================================
 block_t *current_block;  // A pointer to the block currently being traced
+#ifdef FSR_BED_LEVELING
+bool fsr_z_endstop;	// Public variable to fix m119 code
+int fsr_rolling_avg = 50; // Public variable declaration for m505
+#endif
 
 
 //===========================================================================
@@ -517,12 +521,11 @@ ISR(TIMER1_COMPA_vect)
 	  #if defined (FSR_BED_LEVELING) && defined(TEMP_1_PIN) && TEMP_1_PIN > -1
 		int fsr_average;
 		// Additional weighting slows the movement of the rolling average
-		int fsr_weighting = 3;
-		int fsr_rolling_avg;
+		int fsr_weighting = 1;
 		// Number of readings to average
 		int fsr_checks = 5;
 		bool fsr_trigger = false;
-		
+		// Sample and average for fsr_checks
 		for (int i=fsr_checks; i>0; i--){
 		fsr_average += rawTemp1Sample();
 		}
@@ -530,9 +533,11 @@ ISR(TIMER1_COMPA_vect)
 		// Check if ADC average is above switching threshold
 		if ((fsr_average > 1.1*fsr_rolling_avg) || (fsr_average < .9*fsr_rolling_avg) && (fsr_average > 20)){
 			fsr_trigger = true;
+			fsr_z_endstop = true;
 			}
 		else{
 			fsr_trigger = false;
+			fsr_z_endstop = false;
 			}
 		// Run endstop triggered logic
         if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
@@ -542,9 +547,9 @@ ISR(TIMER1_COMPA_vect)
         }
         old_z_min_endstop = fsr_trigger;
 		// Rolling weighted average adjustment
-		fsr_rolling_avg *= fsr_weighting;
-		fsr_rolling_avg += fsr_average;
-		fsr_rolling_avg /= (fsr_weighting+1);
+		fsr_rolling_avg = fsr_rolling_avg*fsr_weighting;
+		fsr_rolling_avg = fsr_rolling_avg+fsr_average;
+		fsr_rolling_avg = fsr_rolling_avg/(fsr_weighting+1);
 		  // End of FSR ABL
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
 		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
