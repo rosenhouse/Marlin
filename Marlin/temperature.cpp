@@ -111,7 +111,7 @@ static volatile bool temp_meas_ready = false;
   static unsigned char soft_pwm[EXTRUDERS];
   
   #if defined FSR_BED_LEVELING
-  int fsr_weighting = 3;
+  int fsr_weighting = 8;
   int fsr_average = 0;
   #endif
 
