@@ -44,7 +44,7 @@ float current_temperature[EXTRUDERS] = { 0.0 };
 int current_temperature_bed_raw = 0;
 float current_temperature_bed = 0.0;
 int raw_temp_1_sample = 0;
-int fsr_rolling_avg = 0;
+int fsr_rolling = 0;
 #ifdef TEMP_SENSOR_1_AS_REDUNDANT
   int redundant_temperature_raw = 0;
   float redundant_temperature = 0.0;
@@ -109,6 +109,11 @@ static volatile bool temp_meas_ready = false;
 	static unsigned long  previous_millis_bed_heater;
 #endif //PIDTEMPBED
   static unsigned char soft_pwm[EXTRUDERS];
+  
+  #if defined FSR_BED_LEVELING
+  int fsr_weighting = 3;
+  int fsr_average = 0;
+  #endif
 
 #ifdef FAN_SOFT_PWM
   static unsigned char soft_pwm_fan;
@@ -1163,7 +1168,7 @@ ISR(TIMER0_COMPB_vect)
 		raw_temp_1_sample = ADC;
 		raw_temp_1_value += raw_temp_1_sample;
 	  #if defined FSR_BED_LEVELING
-	  int fsr_weighting = 1;
+	  
 	  for (int i=10; i>0; i--){
 		fsr_average += ADC;
 		}
