@@ -75,9 +75,6 @@ static volatile bool endstop_z_hit=false;
 #ifdef MSM_Printeer
 static volatile bool endstop_z_max_hit=false;
 #endif
-#ifdef FSR_BED_LEVELING
-int fsr_rolling_avg;
-#endif
 #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
 bool abort_on_endstop_hit = false;
 #endif
@@ -532,12 +529,9 @@ ISR(TIMER1_COMPA_vect)
 		fsr_average += rawTemp1Sample();
 		}
 		fsr_average /= fsr_checks;
-		if (bool fsr_first_run = false){
-			fsr_rolling_avg = fsr_average;
-			fsr_first_run = true;
-		}
+
 		// Check if ADC average is above switching threshold
-		if ((fsr_average > 1.5*fsr_rolling_avg) || (fsr_average < .8*fsr_rolling_avg) && (fsr_average > 20)){
+		if ((fsr_average > 1.5*fsr_rolling_avg()) || (fsr_average < .8*fsr_rolling_avg) && (fsr_average > 20)){
 			fsr_trigger = true;
 			fsr_z_endstop = true;
 			}

@@ -185,7 +185,6 @@
 //=============================imported variables============================
 //===========================================================================
 extern bool fsr_z_endstop;
-extern int fsr_rolling_avg;
 
 //===========================================================================
 //=============================public variables=============================
@@ -2803,7 +2802,7 @@ void process_commands()
 		SERIAL_ECHOPGM("ADC Reading: ");
         SERIAL_ECHOLN(fsr_starting_level);
 		SERIAL_ECHOPGM(" Rolling Avg: ");
-		SERIAL_ECHOLN(fsr_rolling_avg);
+		SERIAL_ECHOLN(fsr_rolling_avg());
         SERIAL_PROTOCOLLN("");
 	}
     break;
