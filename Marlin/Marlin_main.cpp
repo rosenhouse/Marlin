@@ -184,7 +184,7 @@
 //===========================================================================
 //=============================imported variables============================
 //===========================================================================
-
+extern bool fsr_z_endstop;
 
 //===========================================================================
 //=============================public variables=============================
@@ -916,7 +916,6 @@ static void set_bed_level_equation_3pts(float z_at_pt_1, float z_at_pt_2, float 
 static void run_z_probe() {
     plan_bed_level_matrix.set_to_identity();
     feedrate = homing_feedrate[Z_AXIS];
-
     // move down until you find the bed
     float zPosition = -10;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
@@ -2318,7 +2317,10 @@ void process_commands()
         SERIAL_PROTOCOLPGM(MSG_Y_MAX);
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
-      #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1
+	  #if defined FSR_BED_LEVELING
+		SERIAL_PROTOCOLPGM(MSG_Z_MIN);
+		SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+      #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
@@ -2789,6 +2791,21 @@ void process_commands()
     {
         Config_PrintSettings();
     }
+	case 505: // M505 Test function for FSR ABL
+	{
+		int fsr_starting_level;
+		for (int i=10; i>0; i--){
+		fsr_starting_level += rawTemp1Sample();
+		}
+		fsr_starting_level /= 10;
+		
+		SERIAL_ECHO_START;
+		SERIAL_ECHOPGM("ADC Reading: ");
+        SERIAL_ECHOLN(fsr_starting_level);
+		SERIAL_ECHOPGM(" Rolling Avg: ");
+		SERIAL_ECHOLN(fsr_rolling_avg());
+        SERIAL_PROTOCOLLN("");
+	}
     break;
     #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
     case 540:

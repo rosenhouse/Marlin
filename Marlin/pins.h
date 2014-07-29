@@ -1596,7 +1596,7 @@
   #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
 #endif
 
-#define TEMP_1_PIN         -1
+#define TEMP_1_PIN         2	 // Pin for FSR ABL (#40, bottom left of EXP1)
 #define TEMP_2_PIN         -1
 
 #define SDPOWER            -1
