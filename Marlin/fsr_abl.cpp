@@ -2,7 +2,10 @@
 	fsr_abl.cpp contains the functions needed to operate automatic bed leveling with force sensing resistors.
 
 */
-#if defined (FSR_BED_LEVELING) && defined (FSR_PIN) && (FSR_PIN > -1)
+//#ifdef FSR_BED_LEVELING //&& defined FSR_PIN && FSR_PIN > -1
+#include "fsr_abl.h"
+#include "Marlin.h"
+
 // Public Variables
 
 // Private Variables (static preserves between function calls and prevents calling by extern)
@@ -30,7 +33,7 @@ int FSR_ABL_Reading()
 	fsr_rolling_avg = fsr_rolling_avg+fsr_reading;
 	fsr_rolling_avg = fsr_rolling_avg/(fsr_weighting+1);	  
 	#endif
-	return(fsr_reading)
+	return(fsr_reading);
 }
 
 int FSR_ABL_Get_Avg()
@@ -68,5 +71,4 @@ if (((fsr_reading > 1.3*fsr_rolling_avg) || (fsr_reading < .5*fsr_rolling_avg) |
 	return(false);
 	}
 }
-
-#endif
+//#endif
