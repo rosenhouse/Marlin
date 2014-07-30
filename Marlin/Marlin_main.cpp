@@ -185,6 +185,8 @@
 //=============================imported variables============================
 //===========================================================================
 extern bool fsr_z_endstop;
+extern int fsr_rolling_avg;
+extern int fsr_average;
 
 //===========================================================================
 //=============================public variables=============================
@@ -2792,17 +2794,11 @@ void process_commands()
     }
 	case 505: // M505 Test function for FSR ABL
 	{
-		int fsr_starting_level;
-		for (int i=10; i>0; i--){
-		fsr_starting_level += rawTemp1Sample();
-		}
-		fsr_starting_level /= 10;
-		
 		SERIAL_ECHO_START;
 		SERIAL_ECHOPGM("ADC Reading: ");
-        SERIAL_ECHOLN(fsr_starting_level);
+        SERIAL_ECHOLN(fsr_average);
 		SERIAL_ECHOPGM(" Rolling Avg: ");
-		SERIAL_ECHOLN(fsr_rolling_avg());
+		SERIAL_ECHOLN(fsr_rolling_avg);
         SERIAL_PROTOCOLLN("");
 	}
     break;
