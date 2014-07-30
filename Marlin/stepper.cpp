@@ -29,6 +29,9 @@
 #include "language.h"
 #include "cardreader.h"
 #include "speed_lookuptable.h"
+#if defined FSR_BED_LEVELING
+#include "fsr_abl.h"
+#endif
 #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
 #include <SPI.h>
 #endif
@@ -38,12 +41,6 @@
 //=============================public variables  ============================
 //===========================================================================
 block_t *current_block;  // A pointer to the block currently being traced
-#ifdef FSR_BED_LEVELING
-bool fsr_z_endstop;	// Public variable to fix m119 code
-int fsr_rolling_avg; // The rolling average as calculated per loop
-int fsr_average; // Calculated average of fsr adc readings
-#endif
-
 
 //===========================================================================
 //=============================private variables ============================
@@ -519,60 +516,14 @@ ISR(TIMER1_COMPA_vect)
       count_direction[Z_AXIS]=-1;
       CHECK_ENDSTOPS
       {
-	  #if defined (FSR_BED_LEVELING) && defined(FSR_PIN) && FSR_PIN > -1
-	  // Setup FSR ADC pin
-	  #if FSR_PIN > 7
-		ADCSRB = 1<<MUX5;
-	  #else
-		ADCSRB = 0;
-	  #endif
-	  ADMUX = ((1 << REFS0) | (FSR_PIN & 0x07));
-	  ADCSRA |= 1<<ADSC; // Start conversion  
-  
-	  int fsr_weighting = 1;
-	  int fsr_checks = 10; // Number of times to run ADC
-	  bool fsr_trigger = false;
-	  bool fsr_z_endstop = false;
-		
-		// Generate starting point for rolling average
-	  for (int i=fsr_checks; i>0; i--){
-			fsr_rolling_avg += ADC;
-			}
-			fsr_rolling_avg /= fsr_checks;
-		
-		
-	  while (fsr_trigger = false){
-		  // Test adc for fsr_checks and average
-		  for (int i=fsr_checks; i>0; i--){
-			fsr_average += ADC;
-			}
-			fsr_average /= fsr_checks;
-		  
-		  // Escape when endstop trigger conditions are met
-		  if (((fsr_average > 1.3*fsr_rolling_avg) || (fsr_average < .5*fsr_rolling_avg) || (fsr_average > 600)) && (fsr_average > 50)){
-			fsr_trigger = true;
-			fsr_z_endstop = true;
-			SERIAL_ECHO_START;
-			SERIAL_ECHOPGM("ADC Avg: ");
-			SERIAL_ECHOLN(fsr_average);
-			SERIAL_ECHOPGM(" Rolling Avg: ");
-			SERIAL_ECHOLN(fsr_rolling_avg);
-			SERIAL_PROTOCOLLN("");
-			}
-			// Update rolling average
-		  else{
-			fsr_rolling_avg = fsr_rolling_avg*fsr_weighting;
-			fsr_rolling_avg = fsr_rolling_avg+fsr_average;
-			fsr_rolling_avg = fsr_rolling_avg/(fsr_weighting+1);
-			}
-		}			
+	  #if defined (FSR_BED_LEVELING) && defined(FSR_PIN) && FSR_PIN > -1	  
 		// Run endstop triggered logic, fsr_trigger signals endstop status
-        if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
+        if(FSR_ABL_Trigger() && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_z_hit=true;
             step_events_completed = current_block->step_event_count;
         }
-        old_z_min_endstop = fsr_trigger;
+        old_z_min_endstop = FSR_ABL_Trigger();
 		  // End of FSR ABL
 		  
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1

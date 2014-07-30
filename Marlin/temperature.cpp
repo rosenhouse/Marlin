@@ -33,6 +33,9 @@
 #include "ultralcd.h"
 #include "temperature.h"
 #include "watchdog.h"
+#if defined FSR_BED_LEVELING
+#include "fsr_abl.h"
+#endif
 
 //===========================================================================
 //=============================public variables============================
@@ -1187,6 +1190,7 @@ ISR(TIMER0_COMPB_vect)
       break;
     case 8: //Startup, delay initial temp reading a tiny bit so the hardware can settle.
       temp_state = 0;
+	  FSR_ABL_Reading();
       break;
 //    default:
 //      SERIAL_ERROR_START;
