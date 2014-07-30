@@ -111,7 +111,7 @@ static volatile bool temp_meas_ready = false;
   static unsigned char soft_pwm[EXTRUDERS];
   
   #if defined FSR_BED_LEVELING
-  int fsr_weighting = 8;
+  int fsr_weighting = 5;
   int fsr_average = 0;
   #endif
 
@@ -1169,10 +1169,10 @@ ISR(TIMER0_COMPB_vect)
 		raw_temp_1_value += raw_temp_1_sample;
 	  #if defined FSR_BED_LEVELING
 	  
-	  for (int i=10; i>0; i--){
+	  for (int i=5; i>0; i--){
 		fsr_average += ADC;
 		}
-		fsr_average /= 10;
+		fsr_average /= 5;
 		fsr_rolling = fsr_rolling*fsr_weighting;
 		fsr_rolling = fsr_rolling+fsr_average;
 		fsr_rolling = fsr_rolling/(fsr_weighting+1);
