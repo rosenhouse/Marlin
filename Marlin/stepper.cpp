@@ -531,7 +531,7 @@ ISR(TIMER1_COMPA_vect)
 		fsr_average /= fsr_checks;
 
 		// Check if ADC average is above switching threshold
-		if (((fsr_average > 2*fsr_rolling_avg()) || (fsr_average < .8*fsr_rolling_avg()) || (fsr_average > 400)) && (fsr_average > 50)){
+		if (((fsr_average > 1.3*fsr_rolling_avg()) || (fsr_average < .5*fsr_rolling_avg()) || (fsr_average > 600)) && (fsr_average > 50)){
 			fsr_trigger = true;
 			fsr_z_endstop = true;
 			SERIAL_ECHO_START;
