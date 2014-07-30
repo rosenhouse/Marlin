@@ -42,9 +42,6 @@ extern float current_temperature[EXTRUDERS];
 extern int raw_temp_1_sample;
 extern int target_temperature_bed;
 extern float current_temperature_bed;
-#if defined FSR_BED_LEVELING
-extern int fsr_rolling;
-#endif
 #ifdef TEMP_SENSOR_1_AS_REDUNDANT
   extern float redundant_temperature;
 #endif
@@ -91,12 +88,6 @@ FORCE_INLINE float degHotend(uint8_t extruder) {
 FORCE_INLINE int rawTemp1Sample(){
 	return raw_temp_1_sample;
 }
-
-#if defined FSR_BED_LEVELING
-FORCE_INLINE int fsr_rolling_avg(){
-	return fsr_rolling;
-}
-#endif
 
 FORCE_INLINE float degBed() {
   return current_temperature_bed;
