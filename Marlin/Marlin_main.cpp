@@ -61,6 +61,10 @@
 #include <SPI.h>
 #endif
 
+#if defined FSR_BED_LEVELING
+#include "fsr_abl.h"
+#endif
+
 #define VERSION_STRING  "1.0.0"
 
 // look here for descriptions of G-codes: http://linuxcnc.org/handbook/gcode/g-code.html
@@ -184,9 +188,7 @@
 //===========================================================================
 //=============================imported variables============================
 //===========================================================================
-extern bool fsr_z_endstop;
-extern int fsr_rolling_avg;
-extern int fsr_average;
+//extern bool fsr_z_endstop;
 
 //===========================================================================
 //=============================public variables=============================
@@ -2321,7 +2323,7 @@ void process_commands()
       #endif
 	  #if defined FSR_BED_LEVELING
 		SERIAL_PROTOCOLPGM(MSG_Z_MIN);
-		SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+		//SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
@@ -2797,9 +2799,9 @@ void process_commands()
 	{
 		SERIAL_ECHO_START;
 		SERIAL_ECHOPGM("ADC Reading: ");
-        SERIAL_ECHOLN(fsr_average);
+        SERIAL_ECHOLN(FSR_ABL_Reading());
 		SERIAL_ECHOPGM(" Rolling Avg: ");
-		SERIAL_ECHOLN(fsr_rolling_avg);
+		SERIAL_ECHOLN(FSR_ABL_Get_Avg());
         SERIAL_PROTOCOLLN("");
 	}
     break;
