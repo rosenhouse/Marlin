@@ -11,7 +11,7 @@
 
 // Private Variables (static preserves between function calls and prevents calling by extern)
 static int fsr_rolling_avg;
-static float fsr_weighting = .25;
+static float fsr_weighting = 8;
 static int fsr_checks = 1; // Number of times to run ADC
 
 // Updates rolling average with most recent value from ADC
