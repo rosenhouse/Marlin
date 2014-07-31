@@ -61,6 +61,10 @@
 #include <SPI.h>
 #endif
 
+#if defined FSR_BED_LEVELING
+#include "fsr_abl.h"
+#endif
+
 #define VERSION_STRING  "1.0.0"
 
 // look here for descriptions of G-codes: http://linuxcnc.org/handbook/gcode/g-code.html
@@ -184,7 +188,7 @@
 //===========================================================================
 //=============================imported variables============================
 //===========================================================================
-extern bool fsr_z_endstop;
+
 
 //===========================================================================
 //=============================public variables=============================
@@ -1072,6 +1076,13 @@ static void homeaxis(int axis) {
 
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+
+    if (axis == Z_AXIS) {
+      destination[axis] = 5;
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
+    }
+
     destination[axis] = -home_retract_mm(axis) * axis_home_dir;
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
@@ -2319,7 +2330,7 @@ void process_commands()
       #endif
 	  #if defined FSR_BED_LEVELING
 		SERIAL_PROTOCOLPGM(MSG_Z_MIN);
-		SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+		//SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
@@ -2793,17 +2804,11 @@ void process_commands()
     }
 	case 505: // M505 Test function for FSR ABL
 	{
-		int fsr_starting_level;
-		for (int i=10; i>0; i--){
-		fsr_starting_level += rawTemp1Sample();
-		}
-		fsr_starting_level /= 10;
-		
 		SERIAL_ECHO_START;
 		SERIAL_ECHOPGM("ADC Reading: ");
-        SERIAL_ECHOLN(fsr_starting_level);
+        SERIAL_ECHOLN(FSR_ABL_Get_Read());
 		SERIAL_ECHOPGM(" Rolling Avg: ");
-		SERIAL_ECHOLN(fsr_rolling_avg());
+		SERIAL_ECHOLN(FSR_ABL_Get_Avg());
         SERIAL_PROTOCOLLN("");
 	}
     break;

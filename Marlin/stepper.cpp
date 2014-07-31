@@ -29,6 +29,9 @@
 #include "language.h"
 #include "cardreader.h"
 #include "speed_lookuptable.h"
+#if defined FSR_BED_LEVELING
+#include "fsr_abl.h"
+#endif
 #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
 #include <SPI.h>
 #endif
@@ -38,10 +41,6 @@
 //=============================public variables  ============================
 //===========================================================================
 block_t *current_block;  // A pointer to the block currently being traced
-#ifdef FSR_BED_LEVELING
-bool fsr_z_endstop;	// Public variable to fix m119 code
-#endif
-
 
 //===========================================================================
 //=============================private variables ============================
@@ -517,29 +516,9 @@ ISR(TIMER1_COMPA_vect)
       count_direction[Z_AXIS]=-1;
       CHECK_ENDSTOPS
       {
-	  #if defined (FSR_BED_LEVELING) && defined(TEMP_1_PIN) && TEMP_1_PIN > -1
-		int fsr_average;
-		// Additional weighting slows the movement of the rolling average
-		int fsr_weighting = 1;
-		// Number of readings to average
-		int fsr_checks = 20;
-		bool fsr_trigger = false;
-		// Sample and average for fsr_checks
-		for (int i=fsr_checks; i>0; i--){
-		fsr_average += rawTemp1Sample();
-		}
-		fsr_average /= fsr_checks;
-
-		// Check if ADC average is above switching threshold
-		if (((fsr_average > 1.15*fsr_rolling_avg()) || (fsr_average < .9*fsr_rolling_avg()) || (fsr_average > 200)) && (fsr_average > 125)){
-			fsr_trigger = true;
-			fsr_z_endstop = true;
-			}
-		else{
-			fsr_trigger = false;
-			fsr_z_endstop = false;
-			}
-		// Run endstop triggered logic
+	  #if defined FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1	  
+		// Run endstop triggered logic, fsr_trigger signals endstop status
+		bool fsr_trigger = FSR_ABL_Trigger();
         if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_z_hit=true;
@@ -547,6 +526,7 @@ ISR(TIMER1_COMPA_vect)
         }
         old_z_min_endstop = fsr_trigger;
 		  // End of FSR ABL
+		  
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
 		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
           if(z_min_endstop && old_z_min_endstop && (current_block->steps_z > 0)) {
