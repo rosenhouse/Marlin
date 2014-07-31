@@ -516,7 +516,7 @@ ISR(TIMER1_COMPA_vect)
       count_direction[Z_AXIS]=-1;
       CHECK_ENDSTOPS
       {
-	  #if defined (FSR_BED_LEVELING) && defined(FSR_PIN) && FSR_PIN > -1	  
+	  #if defined FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1	  
 		// Run endstop triggered logic, fsr_trigger signals endstop status
         if(FSR_ABL_Trigger() && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
