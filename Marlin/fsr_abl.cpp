@@ -39,12 +39,12 @@ bool FSR_ABL_Trigger()
 {
 // Check filter for trigger conditions
 if (((current_fsr_sample() > 1.3*fsr_rolling_avg) || (current_fsr_sample() < .5*fsr_rolling_avg) || (current_fsr_sample() > 600)) && (current_fsr_sample() > 50)){
-	SERIAL_ECHO_START;
+	/* SERIAL_ECHO_START;
 	SERIAL_ECHOPGM("Read: ");
 	SERIAL_ECHOLN(current_fsr_sample());
 	SERIAL_ECHOPGM(" Roll: ");
 	SERIAL_ECHOLN(fsr_rolling_avg);
-	SERIAL_PROTOCOLLN("");
+	SERIAL_PROTOCOLLN(""); */
 	return(true);
 	}
 else{
