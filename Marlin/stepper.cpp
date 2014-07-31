@@ -518,12 +518,13 @@ ISR(TIMER1_COMPA_vect)
       {
 	  #if defined FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1	  
 		// Run endstop triggered logic, fsr_trigger signals endstop status
-        if(FSR_ABL_Trigger() && old_z_min_endstop && (current_block->steps_z > 0)) {
+		bool fsr_trigger = FSR_ABL_Trigger();
+        if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_z_hit=true;
             step_events_completed = current_block->step_event_count;
         }
-        old_z_min_endstop = FSR_ABL_Trigger();
+        old_z_min_endstop = fsr_trigger;
 		  // End of FSR ABL
 		  
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
