@@ -14,6 +14,7 @@ static int fsr_rolling_avg;
 static float fsr_weighting = .25;
 static int fsr_checks = 1; // Number of times to run ADC
 
+// Updates rolling average with most recent value from ADC
 void FSR_ABL_Reading()
 {
 	fsr_rolling_avg = fsr_rolling_avg*fsr_weighting;
@@ -21,11 +22,13 @@ void FSR_ABL_Reading()
 	fsr_rolling_avg = fsr_rolling_avg/(fsr_weighting+1);
 }
 
+// Returns most recent sampled value from ADC
 int FSR_ABL_Get_Read()
 {
 	return(current_fsr_sample());
 }
 
+// Returns the current rolling average
 int FSR_ABL_Get_Avg()
 {
 	return(fsr_rolling_avg);
@@ -44,8 +47,7 @@ if (((current_fsr_sample() > 1.3*fsr_rolling_avg) || (current_fsr_sample() < .5*
 	SERIAL_PROTOCOLLN("");
 	return(true);
 	}
-	// Update rolling average
-  else{
+else{
 	// Do nothing but return false
 	return(false);
 	}
