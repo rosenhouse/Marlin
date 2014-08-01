@@ -929,17 +929,18 @@ static void run_z_probe() {
     zPosition = st_get_position_mm(Z_AXIS);
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS]);
 
+
     // move up the retract distance
     zPosition += home_retract_mm(Z_AXIS);
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
 
-    // move back down slowly to find bed
+/*    // move back down slowly to find bed
     feedrate = homing_feedrate[Z_AXIS]/4;
     zPosition -= home_retract_mm(Z_AXIS) * 2;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
-
+*/
     current_position[Z_AXIS] = st_get_position_mm(Z_AXIS);
     // make sure the planner knows where we are as it may be a bit different than we last said to move to
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
@@ -1076,7 +1077,7 @@ static void homeaxis(int axis) {
 
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-
+/*
     if (axis == Z_AXIS) {
       destination[axis] = 5;
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
@@ -1103,7 +1104,7 @@ static void homeaxis(int axis) {
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
       st_synchronize();
     }
-#endif
+#endif*/
     axis_is_at_home(axis);
     destination[axis] = current_position[axis];
     feedrate = 0.0;
