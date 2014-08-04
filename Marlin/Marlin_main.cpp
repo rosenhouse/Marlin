@@ -535,6 +535,28 @@ void setup()
      
         pinMode(LED_BUTTON_PIN, OUTPUT);
         digitalWrite(LED_BUTTON_PIN,HIGH);
+
+        enable_endstops(true);
+
+        // clear any existing bed level matix
+        plan_bed_level_matrix.set_to_identity();
+
+        feedrate = homing_feedrate[Z_AXIS];
+       
+        // bed until it hits the z_max_endstop
+        float zPosition = Z_MAX_POS * 1.2;
+        plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
+        st_synchronize();
+
+        // set the current position to Z_MAX position
+        current_position[Z_AXIS] = Z_MAX_POS;
+        plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+         
+        endstops_hit_on_purpose();
+
+        #ifdef ENDSTOPS_ONLY_FOR_HOMING
+          enable_endstops(false);
+        #endif
   #endif
 
 
@@ -1668,7 +1690,7 @@ void process_commands()
        feedrate = homing_feedrate[Z_AXIS];
        
        // bed until it hits the z_max_endstop
-       float zPosition = Z_MAX_POS * 3;
+       float zPosition = Z_MAX_POS * 1.2;
        plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
        st_synchronize();
 
@@ -1677,6 +1699,12 @@ void process_commands()
        plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
         
        endstops_hit_on_purpose();
+
+      #ifdef ENDSTOPS_ONLY_FOR_HOMING
+        enable_endstops(false);
+      #endif
+
+
       }
       break;
 
