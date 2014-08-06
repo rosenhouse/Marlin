@@ -5,6 +5,8 @@
 #ifndef fsr_abl_h
 #define fsr_abl_h
 
+#include "Marlin.h"
+
 
 #ifdef FSR_BED_LEVELING
 int FSR_ABL_Reading();
