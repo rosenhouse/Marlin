@@ -61,7 +61,7 @@
 #include <SPI.h>
 #endif
 
-#if defined FSR_BED_LEVELING
+#ifdef FSR_BED_LEVELING
 #include "fsr_abl.h"
 #endif
 
