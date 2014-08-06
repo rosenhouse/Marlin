@@ -2840,7 +2840,7 @@ void process_commands()
   		SERIAL_ECHOPGM(" Rolling Avg: ");
   		SERIAL_ECHOLN(FSR_ABL_Get_Avg());
           SERIAL_PROTOCOLLN("");
-    #elif
+    #else
       SERIAL_ECHO_START;
       SERIAL_ECHOPGM("NO FSR ABL");
     #endif
