@@ -2,10 +2,13 @@
 	fsr_abl.cpp contains the functions needed to operate automatic bed leveling with force sensing resistors.
 
 */
-//#ifdef FSR_BED_LEVELING //&& defined FSR_PIN && FSR_PIN > -1
+
+
 #include "fsr_abl.h"
 #include "Marlin.h"
 #include "temperature.h"
+
+#ifdef FSR_BED_LEVELING //&& defined FSR_PIN && FSR_PIN > -1
 
 // Public Variables
 
@@ -52,4 +55,6 @@ else{
 	return(false);
 	}
 }
-//#endif
+
+
+#endif

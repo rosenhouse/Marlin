@@ -528,7 +528,7 @@ ISR(TIMER1_COMPA_vect)
 		  // End of FSR ABL
 		  
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
-		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
+		    bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
           if(z_min_endstop && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_z_hit=true;
