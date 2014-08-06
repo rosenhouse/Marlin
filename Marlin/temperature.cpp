@@ -691,7 +691,7 @@ static void updateTemperaturesFromRawValues()
     #ifdef TEMP_SENSOR_1_AS_REDUNDANT
       redundant_temperature = analog2temp(redundant_temperature_raw, 1);
     #endif
-	#if defined FSR_BED_LEVELING
+	#ifdef FSR_BED_LEVELING
 	FSR_ABL_Reading();
 	#endif
 	

@@ -2833,12 +2833,17 @@ void process_commands()
     }
 	case 505: // M505 Test function for FSR ABL
 	{
-		SERIAL_ECHO_START;
-		SERIAL_ECHOPGM("ADC Reading: ");
-        SERIAL_ECHOLN(FSR_ABL_Get_Read());
-		SERIAL_ECHOPGM(" Rolling Avg: ");
-		SERIAL_ECHOLN(FSR_ABL_Get_Avg());
-        SERIAL_PROTOCOLLN("");
+    #ifdef FSR_BED_LEVELING
+  		SERIAL_ECHO_START;
+  		SERIAL_ECHOPGM("ADC Reading: ");
+          SERIAL_ECHOLN(FSR_ABL_Get_Read());
+  		SERIAL_ECHOPGM(" Rolling Avg: ");
+  		SERIAL_ECHOLN(FSR_ABL_Get_Avg());
+          SERIAL_PROTOCOLLN("");
+    #elif
+      SERIAL_ECHO_START;
+      SERIAL_ECHOPGM("NO FSR ABL");
+    #endif
 	}
     break;
     #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
