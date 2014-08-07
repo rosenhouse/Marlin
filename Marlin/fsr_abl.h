@@ -9,7 +9,7 @@
 
 
 #ifdef FSR_BED_LEVELING
-int FSR_ABL_Reading();
+void FSR_ABL_Reading();
 int FSR_ABL_Get_Read();
 int FSR_ABL_Get_Avg();
 bool FSR_ABL_Trigger();
