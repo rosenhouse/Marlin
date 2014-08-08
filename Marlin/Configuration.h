@@ -1,9 +1,3 @@
-    #define MOTHERBOARD 81
-    #define ENABLE_AUTO_BED_LEVELING 1
-    #define AUTO_BED_LEVELING_ANY_POINTS 1
-    #define Z_SAFE_HOMING_FIXED_POINT 1
-    #define CUSTOM_M_CODES 1
-    #define MSM_Printeer 1
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
