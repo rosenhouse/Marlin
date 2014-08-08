@@ -29,9 +29,9 @@
 #include "language.h"
 #include "cardreader.h"
 #include "speed_lookuptable.h"
-#if defined FSR_BED_LEVELING
+//#ifdef FSR_BED_LEVELING
 #include "fsr_abl.h"
-#endif
+//#endif
 #if defined(DIGIPOTSS_PIN) && DIGIPOTSS_PIN > -1
 #include <SPI.h>
 #endif
@@ -516,7 +516,7 @@ ISR(TIMER1_COMPA_vect)
       count_direction[Z_AXIS]=-1;
       CHECK_ENDSTOPS
       {
-	  #if defined FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1	  
+	  #ifdef FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1	  
 		// Run endstop triggered logic, fsr_trigger signals endstop status
 		bool fsr_trigger = FSR_ABL_Trigger();
         if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
@@ -528,7 +528,7 @@ ISR(TIMER1_COMPA_vect)
 		  // End of FSR ABL
 		  
 		#elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
-		if bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
+		if (bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING));
           if(z_min_endstop && old_z_min_endstop && (current_block->steps_z > 0)) {
             endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
             endstop_z_hit=true;

@@ -33,7 +33,7 @@
 #include "ultralcd.h"
 #include "temperature.h"
 #include "watchdog.h"
-#if defined FSR_BED_LEVELING
+#ifdef FSR_BED_LEVELING
 #include "fsr_abl.h"
 #endif
 
@@ -46,7 +46,7 @@ int current_temperature_raw[EXTRUDERS] = { 0 };
 float current_temperature[EXTRUDERS] = { 0.0 };
 int current_temperature_bed_raw = 0;
 float current_temperature_bed = 0.0;
-#if defined FSR_BED_LEVELING
+#ifdef FSR_BED_LEVELING
 int current_fsr_value = 0;
 #endif
 
@@ -1063,7 +1063,7 @@ ISR(TIMER0_COMPB_vect)
   static unsigned char soft_pwm_b;
   #endif
   
-  #if defined FSR_BED_LEVELING
+  #ifdef FSR_BED_LEVELING
   static unsigned long raw_fsr_value = 0;
   #endif
   
@@ -1201,7 +1201,7 @@ ISR(TIMER0_COMPB_vect)
 	  #endif
       break;
 	case 8: // Prepare for FSR_ABL measurement
-	  #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
+	  #ifdef FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
         #if FSR_PIN > 7
           ADCSRB = 1<<MUX5;
         #else
@@ -1213,7 +1213,7 @@ ISR(TIMER0_COMPB_vect)
       temp_state = 9;
 	  break;
 	case 9: // Measure FSR_ABL
-	  #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
+	  #ifdef FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
 	  raw_fsr_value = ADC;
 	  #endif
 	  temp_state = 0;
@@ -1243,7 +1243,7 @@ ISR(TIMER0_COMPB_vect)
 #endif
       current_temperature_bed_raw = raw_temp_bed_value;
 	  
-	  #if defined FSR_BED_LEVELING
+	  #ifdef FSR_BED_LEVELING
 	  current_fsr_value = raw_fsr_value;
 	  #endif
     }
@@ -1254,7 +1254,7 @@ ISR(TIMER0_COMPB_vect)
     raw_temp_1_value = 0;
     raw_temp_2_value = 0;
     raw_temp_bed_value = 0;
-	#if defined FSR_BED_LEVELING
+	#ifdef FSR_BED_LEVELING
 	raw_fsr_value = 0;
 	#endif
 

@@ -1,3 +1,9 @@
+    #define MOTHERBOARD 81
+    #define ENABLE_AUTO_BED_LEVELING 1
+    #define AUTO_BED_LEVELING_ANY_POINTS 1
+    #define Z_SAFE_HOMING_FIXED_POINT 1
+    #define CUSTOM_M_CODES 1
+    #define MSM_Printeer 1
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
@@ -68,7 +74,6 @@
 // 21 = Elefu Ra Board (v3)
 
 #ifndef MOTHERBOARD
-#define MOTHERBOARD 81
 #endif
 
 // Define this to set a custom name for your generic Mendel,
@@ -333,10 +338,8 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define Z_MAX_LENGTH (Z_MAX_POS - Z_MIN_POS)
 //============================= Bed Auto Leveling ===========================
 
-#define ENABLE_AUTO_BED_LEVELING // Delete the comment to enable (remove // at the start of the line)
 
 #ifdef ENABLE_AUTO_BED_LEVELING
-#define FSR_BED_LEVELING // Use force sensing resistors to perform ABL
 // There are 2 different ways to pick the X and Y locations to probe:
 
 //  - "grid" mode
@@ -430,7 +433,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 //      Without this option set, "G28 Z0" will do a straight Z-home from
 //      anywhere in the bed area.  That will cause mayhem on our printer.
 //    - G30 command is disabled, for the same reason.
-    //#define Z_SAFE_HOMING_FIXED_POINT
 
 
   #endif
@@ -477,9 +479,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 //=============================Additional Features===========================
 //===========================================================================
 
-#define MSM_Printeer
 #ifdef MSM_Printeer
-#define CUSTOM_M_CODES
 #define CUSTOM_G_CODES
 #endif
 
