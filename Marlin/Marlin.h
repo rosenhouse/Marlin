@@ -22,8 +22,6 @@
 #include "Configuration.h"
 #include "pins.h"
 
-#include "fsr_abl.h"
-
 #ifndef AT90USB
 #define  HardwareSerial_h // trick to disable the standard HWserial
 #endif

@@ -61,9 +61,9 @@
 #include <SPI.h>
 #endif
 
-//#ifdef FSR_BED_LEVELING
+#ifdef FSR_BED_LEVELING
 #include "fsr_abl.h"
-//#endif
+#endif
 
 #define VERSION_STRING  "1.0.0"
 
@@ -2357,7 +2357,7 @@ void process_commands()
         SERIAL_PROTOCOLPGM(MSG_Y_MAX);
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
-	  #ifdef FSR_BED_LEVELING
+	  #if defined FSR_BED_LEVELING
 		SERIAL_PROTOCOLPGM(MSG_Z_MIN);
 		//SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1

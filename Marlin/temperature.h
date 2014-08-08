@@ -42,7 +42,7 @@ extern float current_temperature[EXTRUDERS];
 extern int raw_temp_1_sample;
 extern int target_temperature_bed;
 extern float current_temperature_bed;
-#ifdef FSR_BED_LEVELING
+#if defined FSR_BED_LEVELING
 extern int current_fsr_value;
 #endif
 
