@@ -1,6 +1,5 @@
 /*
 	fsr_abl.cpp contains the functions needed to operate automatic bed leveling with force sensing resistors.
-
 */
 
 
@@ -15,7 +14,6 @@
 // Private Variables (static preserves between function calls and prevents calling by extern)
 static int fsr_rolling_avg;
 static float fsr_weighting = 5; // Higher weighting means ave changes slower
-//static int fsr_checks = 1; // Number of times to run ADC NO LONGER USED
 
 // Updates rolling average with most recent value from ADC
 void FSR_ABL_Reading()
@@ -42,12 +40,6 @@ bool FSR_ABL_Trigger()
 {
 // Check filter for trigger conditions
 if (((current_fsr_sample() > 1.2*fsr_rolling_avg) || (current_fsr_sample() < .85*fsr_rolling_avg) || (current_fsr_sample() > 500)) && (current_fsr_sample() > 50)){
-	// SERIAL_ECHO_START;
-	// SERIAL_ECHOPGM("Read: ");
-	// SERIAL_ECHOLN(current_fsr_sample());
-	// SERIAL_ECHOPGM(" Roll: ");
-	// SERIAL_ECHOLN(fsr_rolling_avg);
-	// SERIAL_PROTOCOLLN("");
 	return(true);
 	}
 else{
