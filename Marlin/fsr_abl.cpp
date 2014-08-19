@@ -14,8 +14,8 @@
 
 // Private Variables (static preserves between function calls and prevents calling by extern)
 static int fsr_rolling_avg;
-static float fsr_weighting = 4;
-static int fsr_checks = 1; // Number of times to run ADC
+static float fsr_weighting = 5; // Higher weighting means ave changes slower
+//static int fsr_checks = 1; // Number of times to run ADC NO LONGER USED
 
 // Updates rolling average with most recent value from ADC
 void FSR_ABL_Reading()
@@ -41,13 +41,13 @@ int FSR_ABL_Get_Avg()
 bool FSR_ABL_Trigger()
 {
 // Check filter for trigger conditions
-if (((current_fsr_sample() > 1.3*fsr_rolling_avg) || (current_fsr_sample() < .5*fsr_rolling_avg) || (current_fsr_sample() > 600)) && (current_fsr_sample() > 50)){
-	SERIAL_ECHO_START;
-	SERIAL_ECHOPGM("Read: ");
-	SERIAL_ECHOLN(current_fsr_sample());
-	SERIAL_ECHOPGM(" Roll: ");
-	SERIAL_ECHOLN(fsr_rolling_avg);
-	SERIAL_PROTOCOLLN("");
+if (((current_fsr_sample() > 1.2*fsr_rolling_avg) || (current_fsr_sample() < .85*fsr_rolling_avg) || (current_fsr_sample() > 400)) && (current_fsr_sample() > 50)){
+	// SERIAL_ECHO_START;
+	// SERIAL_ECHOPGM("Read: ");
+	// SERIAL_ECHOLN(current_fsr_sample());
+	// SERIAL_ECHOPGM(" Roll: ");
+	// SERIAL_ECHOLN(fsr_rolling_avg);
+	// SERIAL_PROTOCOLLN("");
 	return(true);
 	}
 else{
