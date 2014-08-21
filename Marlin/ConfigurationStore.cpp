@@ -81,6 +81,7 @@ void Config_StoreSettings()
   EEPROM_WRITE_VAR(i,abl_A_offset);
   EEPROM_WRITE_VAR(i,abl_B_offset);
   EEPROM_WRITE_VAR(i,abl_C_offset);
+  EEPROM_WRITE_VAR(i,abl_D_offset);
   #ifdef PIDTEMP
     EEPROM_WRITE_VAR(i,Kp);
     EEPROM_WRITE_VAR(i,Ki);
@@ -235,6 +236,7 @@ void Config_RetrieveSettings()
 		EEPROM_READ_VAR(i,abl_A_offset);
 		EEPROM_READ_VAR(i,abl_B_offset);
 		EEPROM_READ_VAR(i,abl_C_offset);
+		EEPROM_READ_VAR(i,abl_D_offset);
         #ifndef PIDTEMP
         float Kp,Ki,Kd;
         #endif

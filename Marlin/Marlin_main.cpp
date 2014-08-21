@@ -221,6 +221,7 @@ float zprobe_zoffset;
 float abl_A_offset;
 float abl_B_offset;
 float abl_C_offset;
+float abl_D_offset;
 
 // Extruder offset
 #if EXTRUDERS > 1
@@ -1561,7 +1562,43 @@ void process_commands()
                 }
 
                 float measured_z = probe_pt(xProbe, yProbe, z_before);
-
+				
+				// Fudges the value at the fourth point in a 4-pt measurement
+				// A negative input value increases distance between bed and nozzle
+				// A positive input value decreases distance between bed and nozzle
+				// M851 adjustment is applied after ABL transformation is applied
+				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 0) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 0)))
+				{
+				  measured_z -= abl_A_offset;
+				}
+				
+				// Fudges the value at the fourth point in a 4-pt measurement
+				// A negative input value increases distance between bed and nozzle
+				// A positive input value decreases distance between bed and nozzle
+				// M851 adjustment is applied after ABL transformation is applied
+				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 1) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 2)))
+				{
+				  measured_z -= abl_B_offset;
+				}
+				
+				// Fudges the value at the fourth point in a 4-pt measurement
+				// A negative input value increases distance between bed and nozzle
+				// A positive input value decreases distance between bed and nozzle
+				// M851 adjustment is applied after ABL transformation is applied
+				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 2) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 5)))
+				{
+				  measured_z -= abl_C_offset;
+				}
+				
+				// Fudges the value at the fourth point in a 4-pt measurement
+				// A negative input value increases distance between bed and nozzle
+				// A positive input value decreases distance between bed and nozzle
+				// M851 adjustment is applied after ABL transformation is applied
+				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 3) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 8)))
+				{
+				  measured_z -= abl_D_offset;
+				}
+				
                 eqnBVector[probePointCounter] = measured_z;
 
                 eqnAMatrix[probePointCounter + 0*AUTO_BED_LEVELING_GRID_POINTS*AUTO_BED_LEVELING_GRID_POINTS] = xProbe;
@@ -2917,7 +2954,7 @@ void process_commands()
     {
 	  float value;
       if (code_seen('A')) // First point
-        {
+       {
         value = code_value();
         if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
         {
@@ -2956,7 +2993,7 @@ void process_commands()
           SERIAL_PROTOCOLLN("");
         }
 	   }
-		else if (code_seen('C')) // Third point
+	  else if (code_seen('C')) // Third point
        {
         value = code_value();
         if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
@@ -2966,25 +3003,40 @@ void process_commands()
           SERIAL_ECHOLNPGM("ABL C offset has been set");
           SERIAL_PROTOCOLLN("");
         }
-        else
+	   }
+	  else if (code_seen('D')) // Fourth point (grid only)
+       {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
         {
+          abl_D_offset = value; 
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL D offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+		else
+		{
           SERIAL_ECHO_START;
           SERIAL_ECHOPGM("Invalid value.  Must be between ");
           SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
           SERIAL_ECHOPGM(" and ");
           SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
           SERIAL_PROTOCOLLN("");
-        }
+		}
 	   }
+	  
       else
       {
           SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL offsets are currently A: ");
+          SERIAL_ECHOLNPGM("ABL offsets are currently");
+		  SERIAL_ECHOPGM("A: ");
           SERIAL_ECHO(abl_A_offset);
 		  SERIAL_ECHOPGM(", B: ");
 		  SERIAL_ECHO(abl_B_offset);
 		  SERIAL_ECHOPGM(", C: ");
 		  SERIAL_ECHO(abl_C_offset);
+		  SERIAL_ECHOPGM(", D: ");
+		  SERIAL_ECHO(abl_D_offset);
           SERIAL_PROTOCOLLN("");
       }
         break;

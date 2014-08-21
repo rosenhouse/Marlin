@@ -221,6 +221,7 @@ extern float zprobe_zoffset;
 extern float abl_A_offset;
 extern float abl_B_offset;
 extern float abl_C_offset;
+extern float abl_D_offset;
 extern int fanSpeed;
 #ifdef BARICUDA
 extern int ValvePressure;
