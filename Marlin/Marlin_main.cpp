@@ -218,6 +218,9 @@ float min_pos[3] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS };
 float max_pos[3] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 bool axis_known_position[3] = {false, false, false};
 float zprobe_zoffset;
+float abl_A_offset;
+float abl_B_offset;
+float abl_C_offset;
 
 // Extruder offset
 #if EXTRUDERS > 1
@@ -1599,7 +1602,7 @@ void process_commands()
 
             clean_up_after_endstop_move();
 
-            set_bed_level_equation_3pts(z_at_pt_1, z_at_pt_2, z_at_pt_3);
+            set_bed_level_equation_3pts(z_at_pt_1-abl_A_offset, z_at_pt_2-abl_B_offset, z_at_pt_3-abl_C_offset); // Higher values lower nozzle-bed distance
 
 
 #endif // AUTO_BED_LEVELING_GRID
@@ -2909,6 +2912,82 @@ void process_commands()
           SERIAL_PROTOCOLLN("");
       }
       break;
+    }
+	case ABL_ADJUSTMENT: // Allows fudging of ABL values if necessary
+    {
+	  float value;
+      if (code_seen('A')) // First point
+        {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+        {
+          abl_A_offset = value; // lower input values bring nozzle closer to bed
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL A offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+        else
+        {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("Invalid value.  Must be between ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+          SERIAL_ECHOPGM(" and ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+          SERIAL_PROTOCOLLN("");
+        }
+      }
+	  else if (code_seen('B')) // Second point
+       {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+        {
+          abl_B_offset = value; // compare w/ line 278 of ConfigurationStore.cpp
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL B offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+        else
+        {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("Invalid value.  Must be between ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+          SERIAL_ECHOPGM(" and ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+          SERIAL_PROTOCOLLN("");
+        }
+	   }
+		else if (code_seen('C')) // Third point
+       {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+        {
+          abl_C_offset = value; 
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL C offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+        else
+        {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("Invalid value.  Must be between ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+          SERIAL_ECHOPGM(" and ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+          SERIAL_PROTOCOLLN("");
+        }
+	   }
+      else
+      {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL offsets are currently A: ");
+          SERIAL_ECHO(abl_A_offset);
+		  SERIAL_ECHOPGM(", B: ");
+		  SERIAL_ECHO(abl_B_offset);
+		  SERIAL_ECHOPGM(", C: ");
+		  SERIAL_ECHO(abl_C_offset);
+          SERIAL_PROTOCOLLN("");
+      }
+        break;
     }
     #endif // CUSTOM_M_CODES
 
