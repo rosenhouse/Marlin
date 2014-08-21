@@ -13,7 +13,7 @@
 
 // Private Variables (static preserves between function calls and prevents calling by extern)
 static int fsr_rolling_avg;
-static float fsr_weighting = 5; // Higher weighting means ave changes slower
+static float fsr_weighting = 4.5; // Higher weighting means ave changes slower
 
 // Updates rolling average with most recent value from ADC
 void FSR_ABL_Reading()
@@ -39,7 +39,7 @@ int FSR_ABL_Get_Avg()
 bool FSR_ABL_Trigger()
 {
 // Check filter for trigger conditions
-if (((current_fsr_sample() > 1.2*fsr_rolling_avg) || (current_fsr_sample() < .85*fsr_rolling_avg) || (current_fsr_sample() > 500)) && (current_fsr_sample() > 50)){
+if (((current_fsr_sample() > 1.25*fsr_rolling_avg) || (current_fsr_sample() < .65*fsr_rolling_avg) || (current_fsr_sample() > 520)) && (current_fsr_sample() > 50)){
 	return(true);
 	}
 else{

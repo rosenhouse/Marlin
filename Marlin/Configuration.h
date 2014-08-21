@@ -304,10 +304,10 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define DISABLE_Z false
 #define DISABLE_E false // For all extruders
 
-#define INVERT_X_DIR false   // for Mendel set to false, for Orca set to true
-#define INVERT_Y_DIR true    // for Mendel set to true, for Orca set to false
-#define INVERT_Z_DIR false   // for Mendel set to false, for Orca set to true
-#define INVERT_E0_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_X_DIR true   // for Mendel set to false, for Orca set to true
+#define INVERT_Y_DIR false    // for Mendel set to true, for Orca set to false
+#define INVERT_Z_DIR true   // for Mendel set to false, for Orca set to true
+#define INVERT_E0_DIR true  // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E1_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E2_DIR false  // for direct drive extruder v9 set to true, for geared extruder set to false
 
@@ -349,7 +349,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 //    Probe 3 arbitrary points on the bed (that aren't colinear)
 //    You must specify the X & Y coordinates of all 3 points
 
-  #define AUTO_BED_LEVELING_GRID
+  //#define AUTO_BED_LEVELING_GRID
   // with AUTO_BED_LEVELING_GRID, the bed is sampled in a
   // AUTO_BED_LEVELING_GRID_POINTSxAUTO_BED_LEVELING_GRID_POINTS grid
   // and least squares solution is calculated
@@ -357,10 +357,10 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
   #ifdef AUTO_BED_LEVELING_GRID
 
     // set the rectangle in which to probe
-    #define LEFT_PROBE_BED_POSITION 15
-    #define RIGHT_PROBE_BED_POSITION 50
-    #define BACK_PROBE_BED_POSITION 80
-    #define FRONT_PROBE_BED_POSITION 50
+    #define LEFT_PROBE_BED_POSITION 10
+    #define RIGHT_PROBE_BED_POSITION 80
+    #define BACK_PROBE_BED_POSITION 90
+    #define FRONT_PROBE_BED_POSITION 20
 
      // set the number of grid points per dimension
      // I wouldn't see a reason to go above 3 (=9 probing points on the bed)
@@ -371,12 +371,12 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
     // with no grid, just probe 3 arbitrary points.  A simple cross-product
     // is used to esimate the plane of the print bed
 
-      #define ABL_PROBE_PT_1_X -10
-      #define ABL_PROBE_PT_1_Y 121
-      #define ABL_PROBE_PT_2_X -10 
-      #define ABL_PROBE_PT_2_Y 32
-      #define ABL_PROBE_PT_3_X 114 
-      #define ABL_PROBE_PT_3_Y 122
+      #define ABL_PROBE_PT_1_X 0
+      #define ABL_PROBE_PT_1_Y 60
+      #define ABL_PROBE_PT_2_X 80 
+      #define ABL_PROBE_PT_2_Y 100
+      #define ABL_PROBE_PT_3_X 80 
+      #define ABL_PROBE_PT_3_Y 30
 
   #endif // AUTO_BED_LEVELING_GRID
 
@@ -489,6 +489,9 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
   #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 851
   #define Z_PROBE_OFFSET_RANGE_MIN -10
   #define Z_PROBE_OFFSET_RANGE_MAX 10
+  #define ABL_ADJUSTMENT 506
+  #define ABL_ADJUSTMENT_MIN -5
+  #define ABL_ADJUSTMENT_MAX 5
 #endif
 
 // Custom G code points
