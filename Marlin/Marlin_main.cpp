@@ -1570,6 +1570,7 @@ void process_commands()
 				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 0) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 0)))
 				{
 				  measured_z -= abl_A_offset;
+				  SERIAL_PROTOCOLLN("A");
 				}
 				
 				// Fudges the value at the fourth point in a 4-pt measurement
@@ -1579,6 +1580,7 @@ void process_commands()
 				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 1) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 2)))
 				{
 				  measured_z -= abl_B_offset;
+				  SERIAL_PROTOCOLLN("B");
 				}
 				
 				// Fudges the value at the fourth point in a 4-pt measurement
@@ -1588,6 +1590,7 @@ void process_commands()
 				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 2) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 5)))
 				{
 				  measured_z -= abl_C_offset;
+				  SERIAL_PROTOCOLLN("C");
 				}
 				
 				// Fudges the value at the fourth point in a 4-pt measurement
@@ -1597,6 +1600,7 @@ void process_commands()
 				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 3) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 8)))
 				{
 				  measured_z -= abl_D_offset;
+				  SERIAL_PROTOCOLLN("D");
 				}
 				
                 eqnBVector[probePointCounter] = measured_z;
