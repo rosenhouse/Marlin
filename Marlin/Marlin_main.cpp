@@ -1783,7 +1783,7 @@ void process_commands()
       case BUTTON_LED_ON: 
       {       
         digitalWrite(LED_BUTTON_PIN,HIGH);
-        SERIAL_PROTOCOLPGM("RED LED OFF \n");
+        SERIAL_PROTOCOLPGM("BUTTON LED ON \n");
       }
       break;
 
