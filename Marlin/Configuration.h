@@ -483,18 +483,23 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define CUSTOM_G_CODES
 #endif
 
-// Custom M code points
-#ifdef CUSTOM_M_CODES
-  #define CUSTOM_M_CODE_REPORT_BUILD_INFO 850
-  #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 851
-  #define Z_PROBE_OFFSET_RANGE_MIN -10
-  #define Z_PROBE_OFFSET_RANGE_MAX 10
+// Custom M codes and parameters for FSR BED LEVELING
+#ifdef FSR_BED_LEVELING
+  #define ABL_TEST_FUNCTION 505
   #define ABL_ADJUSTMENT 506
   #define ABL_ADJUSTMENT_MIN -5
   #define ABL_ADJUSTMENT_MAX 5
 #endif
 
-// Custom G code points
+// Custom M code for MSM Printeer
+#ifdef CUSTOM_M_CODES
+  #define CUSTOM_M_CODE_REPORT_BUILD_INFO 850
+  #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 851
+  #define Z_PROBE_OFFSET_RANGE_MIN -10
+  #define Z_PROBE_OFFSET_RANGE_MAX 10
+#endif
+
+// Custom G code for MSM Printeer
 #ifdef CUSTOM_G_CODES
   #define Move_Z_Max 405
   #define GREEN_LED_ON 411

@@ -2875,27 +2875,122 @@ void process_commands()
     {
         Config_PrintSettings();
     }
-	case 505: // M505 Test function for FSR ABL
-	{
-    #ifdef FSR_BED_LEVELING
-  		SERIAL_ECHO_START;
-  		SERIAL_ECHOPGM("ADC Reading: ");
-          SERIAL_ECHOLN(FSR_ABL_Get_Read());
-  		SERIAL_ECHOPGM(" Rolling Avg: ");
-  		SERIAL_ECHOLN(FSR_ABL_Get_Avg());
-          SERIAL_PROTOCOLLN("");
-    #else
-      SERIAL_ECHO_START;
-      SERIAL_ECHOPGM("NO FSR ABL");
-    #endif
-	}
-    break;
+	
     #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
     case 540:
     {
         if(code_seen('S')) abort_on_endstop_hit = code_value() > 0;
     }
     break;
+    #endif
+
+    
+    #ifdef FSR_BED_LEVELING
+      case ABL_TEST_FUNCTION: // M505 Test function for FSR ABL
+      {
+        #ifdef FSR_BED_LEVELING
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("ADC Reading: ");
+          SERIAL_ECHOLN(FSR_ABL_Get_Read());
+          SERIAL_ECHOPGM(" Rolling Avg: ");
+          SERIAL_ECHOLN(FSR_ABL_Get_Avg());
+          SERIAL_PROTOCOLLN("");
+        #else
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("NO FSR ABL");
+        #endif
+      }
+      break;
+      case ABL_ADJUSTMENT: // Allows fudging of ABL values if necessary
+      {
+      float value;
+        if (code_seen('A')) // First point
+         {
+          value = code_value();
+          if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+          {
+            abl_A_offset = value; // lower input values bring nozzle closer to bed
+            SERIAL_ECHO_START;
+            SERIAL_ECHOLNPGM("ABL A offset has been set");
+            SERIAL_PROTOCOLLN("");
+          }
+          else
+          {
+            SERIAL_ECHO_START;
+            SERIAL_ECHOPGM("Invalid value.  Must be between ");
+            SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+            SERIAL_ECHOPGM(" and ");
+            SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+            SERIAL_PROTOCOLLN("");
+          }
+        }
+      else if (code_seen('B')) // Second point
+         {
+          value = code_value();
+          if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+          {
+            abl_B_offset = value; // compare w/ line 278 of ConfigurationStore.cpp
+            SERIAL_ECHO_START;
+            SERIAL_ECHOLNPGM("ABL B offset has been set");
+            SERIAL_PROTOCOLLN("");
+          }
+          else
+          {
+            SERIAL_ECHO_START;
+            SERIAL_ECHOPGM("Invalid value.  Must be between ");
+            SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+            SERIAL_ECHOPGM(" and ");
+            SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+            SERIAL_PROTOCOLLN("");
+          }
+       }
+      else if (code_seen('C')) // Third point
+         {
+          value = code_value();
+          if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+          {
+            abl_C_offset = value; 
+            SERIAL_ECHO_START;
+            SERIAL_ECHOLNPGM("ABL C offset has been set");
+            SERIAL_PROTOCOLLN("");
+          }
+       }
+      else if (code_seen('D')) // Fourth point (grid only)
+       {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+        {
+          abl_D_offset = value; 
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL D offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+        else
+        {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("Invalid value.  Must be between ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+          SERIAL_ECHOPGM(" and ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+          SERIAL_PROTOCOLLN("");
+        }
+        }  
+        else
+        {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL offsets are currently");
+          SERIAL_ECHOPGM("A: ");
+          SERIAL_ECHO(abl_A_offset);
+          SERIAL_ECHOPGM(", B: ");
+          SERIAL_ECHO(abl_B_offset);
+          SERIAL_ECHOPGM(", C: ");
+          SERIAL_ECHO(abl_C_offset);
+          SERIAL_ECHOPGM(", D: ");
+          SERIAL_ECHO(abl_D_offset);
+          SERIAL_PROTOCOLLN("");
+        }
+          break;
+      }      
     #endif
 
     #ifdef CUSTOM_M_CODES
@@ -2954,97 +3049,7 @@ void process_commands()
       }
       break;
     }
-	case ABL_ADJUSTMENT: // Allows fudging of ABL values if necessary
-    {
-	  float value;
-      if (code_seen('A')) // First point
-       {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_A_offset = value; // lower input values bring nozzle closer to bed
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL A offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-        else
-        {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOPGM("Invalid value.  Must be between ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-          SERIAL_ECHOPGM(" and ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-          SERIAL_PROTOCOLLN("");
-        }
-      }
-	  else if (code_seen('B')) // Second point
-       {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_B_offset = value; // compare w/ line 278 of ConfigurationStore.cpp
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL B offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-        else
-        {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOPGM("Invalid value.  Must be between ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-          SERIAL_ECHOPGM(" and ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-          SERIAL_PROTOCOLLN("");
-        }
-	   }
-	  else if (code_seen('C')) // Third point
-       {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_C_offset = value; 
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL C offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-	   }
-	  else if (code_seen('D')) // Fourth point (grid only)
-       {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_D_offset = value; 
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL D offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-		else
-		{
-          SERIAL_ECHO_START;
-          SERIAL_ECHOPGM("Invalid value.  Must be between ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-          SERIAL_ECHOPGM(" and ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-          SERIAL_PROTOCOLLN("");
-		}
-	   }
-	  
-      else
-      {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL offsets are currently");
-		  SERIAL_ECHOPGM("A: ");
-          SERIAL_ECHO(abl_A_offset);
-		  SERIAL_ECHOPGM(", B: ");
-		  SERIAL_ECHO(abl_B_offset);
-		  SERIAL_ECHOPGM(", C: ");
-		  SERIAL_ECHO(abl_C_offset);
-		  SERIAL_ECHOPGM(", D: ");
-		  SERIAL_ECHO(abl_D_offset);
-          SERIAL_PROTOCOLLN("");
-      }
-        break;
-    }
+
     #endif // CUSTOM_M_CODES
 
     #ifdef FILAMENTCHANGEENABLE
