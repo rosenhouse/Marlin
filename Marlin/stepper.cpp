@@ -526,7 +526,7 @@ ISR(TIMER1_COMPA_vect)
         }
         old_z_min_endstop = fsr_trigger;
           // End of FSR ABL
-i
+
        #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
          bool z_min_endstop=(READ(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING);
          if(z_min_endstop && old_z_min_endstop && (current_block->steps_z > 0)) {
