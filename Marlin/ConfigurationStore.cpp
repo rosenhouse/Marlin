@@ -77,9 +77,7 @@ void Config_StoreSettings()
   EEPROM_WRITE_VAR(i,absPreheatHotendTemp);
   EEPROM_WRITE_VAR(i,absPreheatHPBTemp);
   EEPROM_WRITE_VAR(i,absPreheatFanSpeed);
-  #ifdef MSM_Printeer
-    EEPROM_WRITE_VAR(i,zprobe_zoffset);
-  #endif
+  EEPROM_WRITE_VAR(i,zprobe_zoffset);
   #ifdef FSR_BED_LEVELING  
     EEPROM_WRITE_VAR(i,abl_A_offset);
     EEPROM_WRITE_VAR(i,abl_B_offset);
@@ -236,9 +234,7 @@ void Config_RetrieveSettings()
         EEPROM_READ_VAR(i,absPreheatHotendTemp);
         EEPROM_READ_VAR(i,absPreheatHPBTemp);
         EEPROM_READ_VAR(i,absPreheatFanSpeed);
-        #ifdef MSM_Printeer
-          EEPROM_READ_VAR(i,zprobe_zoffset);
-        #endif
+        EEPROM_READ_VAR(i,zprobe_zoffset);
 		    #ifdef FSR_BED_LEVELING
           EEPROM_READ_VAR(i,abl_A_offset);
       		EEPROM_READ_VAR(i,abl_B_offset);
