@@ -217,11 +217,15 @@ float endstop_adj[3]={0,0,0};
 float min_pos[3] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS };
 float max_pos[3] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 bool axis_known_position[3] = {false, false, false};
-float zprobe_zoffset;
-float abl_A_offset;
-float abl_B_offset;
-float abl_C_offset;
-float abl_D_offset;
+#ifdef MSM_Printeer
+  float zprobe_zoffset;
+#endif 
+#ifdef FSR_BED_LEVELING  
+  float abl_A_offset;
+  float abl_B_offset;
+  float abl_C_offset;
+  float abl_D_offset;
+#endif
 
 // Extruder offset
 #if EXTRUDERS > 1
@@ -529,44 +533,11 @@ void setup()
     digipot_i2c_init();
   #endif
 
-  // Turn all LEDs on at Startup
   #ifdef MSM_Printeer
-        pinMode(LED_GREEN_PIN,OUTPUT);
-        digitalWrite(LED_GREEN_PIN,HIGH);
-     
-        pinMode(LED_RED_PIN,OUTPUT);
-        digitalWrite(LED_RED_PIN,HIGH);
-     
-        pinMode(LED_BUTTON_PIN, OUTPUT);
-        digitalWrite(LED_BUTTON_PIN,HIGH);
-
-        enable_endstops(true);
-
-        // clear any existing bed level matix
-        plan_bed_level_matrix.set_to_identity();
-
-        feedrate = homing_feedrate[Z_AXIS];
-       
-        // bed until it hits the z_max_endstop
-        float zPosition = Z_MAX_POS * 1.2;
-        plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
-        st_synchronize();
-
-        // set the current position to Z_MAX position
-        current_position[Z_AXIS] = Z_MAX_POS;
-        plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-         
-        endstops_hit_on_purpose();
-
-        #ifdef ENDSTOPS_ONLY_FOR_HOMING
-          enable_endstops(false);
-        #endif
+    run_z_max();
+    led_init();        
   #endif
-
-
-
 }
-
 
 void loop()
 {
@@ -1191,6 +1162,45 @@ void refresh_cmd_timeout(void)
   } //retract
 #endif //FWRETRACT
 
+#ifdef MSM_Printeer
+  void run_z_max()
+  {
+    enable_endstops(true);
+
+    // clear any existing bed level matix
+    plan_bed_level_matrix.set_to_identity();
+
+    feedrate = homing_feedrate[Z_AXIS];
+   
+    // bed until it hits the z_max_endstop
+    float zPosition = Z_MAX_POS * 1.05;
+    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
+    st_synchronize();
+
+    // set the current position to Z_MAX position
+    current_position[Z_AXIS] = Z_MAX_POS;
+    plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+     
+    endstops_hit_on_purpose();
+
+    #ifdef ENDSTOPS_ONLY_FOR_HOMING
+      enable_endstops(false);
+    #endif
+  }
+
+  void led_init()
+  {
+    pinMode(LED_GREEN_PIN,OUTPUT);
+    digitalWrite(LED_GREEN_PIN,HIGH);
+
+    pinMode(LED_RED_PIN,OUTPUT);
+    digitalWrite(LED_RED_PIN,HIGH);
+
+    pinMode(LED_BUTTON_PIN, OUTPUT);
+    digitalWrite(LED_BUTTON_PIN,HIGH);
+  }
+#endif
+
 void process_commands()
 {
   unsigned long codenum; //throw away variable
@@ -1721,72 +1731,43 @@ void process_commands()
       }
       break;
 
-      // Custom G-Codes for MSM
+      // Custom G-Codes for MSM Printeer
       #ifdef CUSTOM_G_CODES
-
       case Move_Z_Max:
       {
-       enable_endstops(true);
-
-       // clear any existing bed level matix
-       plan_bed_level_matrix.set_to_identity();
-
-       feedrate = homing_feedrate[Z_AXIS];
-       
-       // bed until it hits the z_max_endstop
-       float zPosition = Z_MAX_POS * 1.2;
-       plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
-       st_synchronize();
-
-       // set the current position to Z_MAX position
-       current_position[Z_AXIS] = Z_MAX_POS;
-       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-        
-       endstops_hit_on_purpose();
-
-      #ifdef ENDSTOPS_ONLY_FOR_HOMING
-        enable_endstops(false);
-      #endif
-
-
+       run_z_max();
       }
       break;
-
       case GREEN_LED_ON: 
       {
         digitalWrite(LED_GREEN_PIN,HIGH);
         SERIAL_PROTOCOLPGM("GREEN LED ON \n");
       }
       break;
-
       case GREEN_LED_OFF: 
       {
         digitalWrite(LED_GREEN_PIN,LOW);
         SERIAL_PROTOCOLPGM("GREEN LED OFF \n");
       }
       break;
-
       case RED_LED_ON: 
       {       
         digitalWrite(LED_RED_PIN,HIGH);
         SERIAL_PROTOCOLPGM("RED LED ON \n");
       }
       break;
-
       case RED_LED_OFF: 
       {
         digitalWrite(LED_RED_PIN,LOW);
         SERIAL_PROTOCOLPGM("RED LED OFF \n");
       }
       break;
-
       case BUTTON_LED_ON: 
       {       
         digitalWrite(LED_BUTTON_PIN,HIGH);
         SERIAL_PROTOCOLPGM("BUTTON LED ON \n");
       }
       break;
-
       case BUTTON_LED_OFF:
       {
         digitalWrite(LED_BUTTON_PIN,LOW);
@@ -1794,7 +1775,6 @@ void process_commands()
       }
       break;
       #endif
-
     }
   }
 
@@ -2884,9 +2864,8 @@ void process_commands()
     break;
     #endif
 
-    
     #ifdef FSR_BED_LEVELING
-      case ABL_TEST_FUNCTION: // M505 Test function for FSR ABL
+      case ABL_TEST_FUNCTION: //  Test function for FSR ABL
       {
         #ifdef FSR_BED_LEVELING
           SERIAL_ECHO_START;
@@ -3049,7 +3028,6 @@ void process_commands()
       }
       break;
     }
-
     #endif // CUSTOM_M_CODES
 
     #ifdef FILAMENTCHANGEENABLE
