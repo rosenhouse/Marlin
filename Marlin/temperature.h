@@ -43,7 +43,7 @@ extern int raw_temp_1_sample;
 extern int target_temperature_bed;
 extern float current_temperature_bed;
 #if defined FSR_BED_LEVELING
-extern int current_fsr_value;
+  extern int current_fsr_value;
 #endif
 
 #ifdef TEMP_SENSOR_1_AS_REDUNDANT
@@ -91,13 +91,13 @@ FORCE_INLINE float degHotend(uint8_t extruder) {
 
 #ifdef FSR_BED_LEVELING
   FORCE_INLINE int current_fsr_sample(){
-	return current_fsr_value;
-}
-#endif
+    return current_fsr_value;
+  }
 
-FORCE_INLINE int rawTemp1Sample(){
-	return raw_temp_1_sample;
-}
+  FORCE_INLINE int rawTemp1Sample(){
+    return raw_temp_1_sample;
+  }
+#endif
 
 FORCE_INLINE float degBed() {
   return current_temperature_bed;

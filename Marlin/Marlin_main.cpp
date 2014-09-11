@@ -276,14 +276,14 @@ int EtoPPressure=0;
   float delta_diagonal_rod= DELTA_DIAGONAL_ROD;
   float delta_diagonal_rod_2= sq(delta_diagonal_rod);
   float delta_segments_per_second= DELTA_SEGMENTS_PER_SECOND;
-#endif				
+#endif
 
-#ifdef FSR_BED_LEVELING  
+#ifdef FSR_BED_LEVELING
   float abl_A_offset;
   float abl_B_offset;
   float abl_C_offset;
   float abl_D_offset;
-#endif	
+#endif
 
 //===========================================================================
 //=============================Private Variables=============================
@@ -534,7 +534,7 @@ void setup()
 
   #ifdef MSM_Printeer
     run_z_max();
-    led_init();        
+    led_init();
   #endif
 }
 
@@ -1173,7 +1173,7 @@ void refresh_cmd_timeout(void)
     plan_bed_level_matrix.set_to_identity();
 
     feedrate = homing_feedrate[Z_AXIS];
-   
+
     // bed until it hits the z_max_endstop
     float zPosition = Z_MAX_POS * 1.05;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
@@ -1182,7 +1182,7 @@ void refresh_cmd_timeout(void)
     // set the current position to Z_MAX position
     current_position[Z_AXIS] = Z_MAX_POS;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-     
+
     endstops_hit_on_purpose();
 
     #ifdef ENDSTOPS_ONLY_FOR_HOMING
@@ -1584,7 +1584,7 @@ void process_commands()
 				  measured_z -= abl_A_offset;
 				  SERIAL_PROTOCOLLN("A");
 				}
-				
+
 				// Fudges the value at the fourth point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
@@ -1594,7 +1594,7 @@ void process_commands()
 				  measured_z -= abl_B_offset;
 				  SERIAL_PROTOCOLLN("B");
 				}
-				
+
 				// Fudges the value at the fourth point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
@@ -1604,7 +1604,7 @@ void process_commands()
 				  measured_z -= abl_C_offset;
 				  SERIAL_PROTOCOLLN("C");
 				}
-				
+
 				// Fudges the value at the fourth point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
@@ -1615,7 +1615,7 @@ void process_commands()
 				  SERIAL_PROTOCOLLN("D");
 				}
       #endif
-				
+
                 eqnBVector[probePointCounter] = measured_z;
 
                 eqnAMatrix[probePointCounter + 0*AUTO_BED_LEVELING_GRID_POINTS*AUTO_BED_LEVELING_GRID_POINTS] = xProbe;
@@ -2388,8 +2388,8 @@ void process_commands()
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
 	    #ifdef FSR_BED_LEVELING
-		    SERIAL_PROTOCOLPGM(MSG_Z_MIN);
-		    //SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+        //SERIAL_PROTOCOLPGM(MSG_Z_MIN);
+        //SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
@@ -2861,7 +2861,7 @@ void process_commands()
     {
         Config_PrintSettings();
     }
-	
+
     #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
     case 540:
     {
@@ -2934,7 +2934,7 @@ void process_commands()
           value = code_value();
           if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
           {
-            abl_C_offset = value; 
+            abl_C_offset = value;
             SERIAL_ECHO_START;
             SERIAL_ECHOLNPGM("ABL C offset has been set");
             SERIAL_PROTOCOLLN("");
@@ -2945,7 +2945,7 @@ void process_commands()
         value = code_value();
         if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
         {
-          abl_D_offset = value; 
+          abl_D_offset = value;
           SERIAL_ECHO_START;
           SERIAL_ECHOLNPGM("ABL D offset has been set");
           SERIAL_PROTOCOLLN("");
@@ -2959,7 +2959,7 @@ void process_commands()
           SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
           SERIAL_PROTOCOLLN("");
         }
-        }  
+        }
         else
         {
           SERIAL_ECHO_START;
@@ -2975,7 +2975,7 @@ void process_commands()
           SERIAL_PROTOCOLLN("");
         }
           break;
-      }      
+      }
     #endif
 
     #ifdef CUSTOM_M_CODES

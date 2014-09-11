@@ -114,7 +114,7 @@ static volatile bool temp_meas_ready = false;
 	static unsigned long  previous_millis_bed_heater;
 #endif //PIDTEMPBED
   static unsigned char soft_pwm[EXTRUDERS];
-  
+
 #ifdef FAN_SOFT_PWM
   static unsigned char soft_pwm_fan;
 #endif
@@ -217,6 +217,7 @@ void PID_autotune(float temp, int extruder, int ncycles)
 
     if(temp_meas_ready == true) { // temp sample ready
       updateTemperaturesFromRawValues();
+
       input = (extruder<0)?current_temperature_bed:current_temperature[extruder];
 
       max=max(max,input);
@@ -692,10 +693,10 @@ static void updateTemperaturesFromRawValues()
       redundant_temperature = analog2temp(redundant_temperature_raw, 1);
     #endif
 	#ifdef FSR_BED_LEVELING
-	FSR_ABL_Reading();
+	  FSR_ABL_Reading();
 	#endif
-	
-    //Reset the watchdog after we know we have a temperature measurement.
+
+     //Reset the watchdog after we know we have a temperature measurement.
     watchdog_reset();
 
     CRITICAL_SECTION_START;
@@ -1064,9 +1065,9 @@ ISR(TIMER0_COMPB_vect)
   #endif
   
   #if defined FSR_BED_LEVELING
-  static unsigned long raw_fsr_value = 0;
+    static unsigned long raw_fsr_value = 0;
   #endif
-  
+
   if(pwm_count == 0){
     soft_pwm_0 = soft_pwm[0];
     if(soft_pwm_0 > 0) { 
@@ -1172,8 +1173,12 @@ ISR(TIMER0_COMPB_vect)
       break;
     case 5: // Measure TEMP_1
       #if defined(TEMP_1_PIN) && (TEMP_1_PIN > -1)
-		raw_temp_1_sample = ADC;
-		raw_temp_1_value += raw_temp_1_sample;
+        #ifdef FSR_BED_LEVELING
+          raw_temp_1_sample = ADC;
+          raw_temp_1_value += raw_temp_1_sample;
+        #else
+          raw_temp_1_value += ADC
+        #endif
       #endif
       temp_state = 6;
       break;
@@ -1242,10 +1247,10 @@ ISR(TIMER0_COMPB_vect)
       current_temperature_raw[2] = raw_temp_2_value;
 #endif
       current_temperature_bed_raw = raw_temp_bed_value;
-	  
-	  #if defined FSR_BED_LEVELING
-	  current_fsr_value = raw_fsr_value;
-	  #endif
+
+     #ifdef FSR_BED_LEVELING
+       current_fsr_value = raw_fsr_value;
+     #endif
     }
     
     temp_meas_ready = true;
@@ -1254,9 +1259,9 @@ ISR(TIMER0_COMPB_vect)
     raw_temp_1_value = 0;
     raw_temp_2_value = 0;
     raw_temp_bed_value = 0;
-	#if defined FSR_BED_LEVELING
-	raw_fsr_value = 0;
-	#endif
+    #ifdef FSR_BED_LEVELING
+      raw_fsr_value = 0;
+    #endif
 
 #if HEATER_0_RAW_LO_TEMP > HEATER_0_RAW_HI_TEMP
     if(current_temperature_raw[0] <= maxttemp_raw[0]) {
