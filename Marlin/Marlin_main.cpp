@@ -217,15 +217,7 @@ float endstop_adj[3]={0,0,0};
 float min_pos[3] = { X_MIN_POS, Y_MIN_POS, Z_MIN_POS };
 float max_pos[3] = { X_MAX_POS, Y_MAX_POS, Z_MAX_POS };
 bool axis_known_position[3] = {false, false, false};
-#ifdef MSM_Printeer
-  float zprobe_zoffset;
-#endif 
-#ifdef FSR_BED_LEVELING  
-  float abl_A_offset;
-  float abl_B_offset;
-  float abl_C_offset;
-  float abl_D_offset;
-#endif
+float zprobe_zoffset;
 
 // Extruder offset
 #if EXTRUDERS > 1
@@ -284,7 +276,14 @@ int EtoPPressure=0;
   float delta_diagonal_rod= DELTA_DIAGONAL_ROD;
   float delta_diagonal_rod_2= sq(delta_diagonal_rod);
   float delta_segments_per_second= DELTA_SEGMENTS_PER_SECOND;
-#endif					
+#endif				
+
+#ifdef FSR_BED_LEVELING  
+  float abl_A_offset;
+  float abl_B_offset;
+  float abl_C_offset;
+  float abl_D_offset;
+#endif	
 
 //===========================================================================
 //=============================Private Variables=============================
@@ -931,13 +930,13 @@ static void run_z_probe() {
     zPosition += home_retract_mm(Z_AXIS);
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
-
-/*    // move back down slowly to find bed
-    feedrate = homing_feedrate[Z_AXIS]/4;
-    zPosition -= home_retract_mm(Z_AXIS) * 2;
-    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
-*/
+    #ifndef FSR_BED_LEVELING // no second tap if FSR_BED_LEVELING
+      // move back down slowly to find bed
+      feedrate = homing_feedrate[Z_AXIS]/4;
+      zPosition -= home_retract_mm(Z_AXIS) * 2;
+      plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
+    #endif
     current_position[Z_AXIS] = st_get_position_mm(Z_AXIS);
     // make sure the planner knows where we are as it may be a bit different than we last said to move to
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
@@ -1075,24 +1074,27 @@ static void homeaxis(int axis) {
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 
+    #ifdef FSR_BED_LEVELING // ensure Z-retract after FSR_BED_LEVELING homing
     if (axis == Z_AXIS) {
       destination[axis] = 3;
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
       st_synchronize();
     }
-/*
-    destination[axis] = -home_retract_mm(axis) * axis_home_dir;
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
+    #endif
+    #ifndef FSR_BED_LEVELING // no second tap for FSR_BED_LEVELING homing
+      destination[axis] = -home_retract_mm(axis) * axis_home_dir;
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
 
-    destination[axis] = 2*home_retract_mm(axis) * axis_home_dir;
-#ifdef DELTA
-    feedrate = homing_feedrate[axis]/10;
-#else
-    feedrate = homing_feedrate[axis]/2 ;
-#endif
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
+      destination[axis] = 2*home_retract_mm(axis) * axis_home_dir;
+  #ifdef DELTA
+      feedrate = homing_feedrate[axis]/10;
+  #else
+      feedrate = homing_feedrate[axis]/2 ;
+  #endif
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
+    #endif
 #ifdef DELTA
     // retrace by the amount specified in endstop_adj
     if (endstop_adj[axis] * axis_home_dir < 0) {
@@ -1101,7 +1103,7 @@ static void homeaxis(int axis) {
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
       st_synchronize();
     }
-#endif*/
+#endif
     axis_is_at_home(axis);
     destination[axis] = current_position[axis];
     feedrate = 0.0;
@@ -1572,7 +1574,7 @@ void process_commands()
                 }
 
                 float measured_z = probe_pt(xProbe, yProbe, z_before);
-				
+			#ifdef FSR_BED_LEVELING
 				// Fudges the value at the fourth point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
@@ -1612,6 +1614,7 @@ void process_commands()
 				  measured_z -= abl_D_offset;
 				  SERIAL_PROTOCOLLN("D");
 				}
+      #endif
 				
                 eqnBVector[probePointCounter] = measured_z;
 
@@ -1653,8 +1656,11 @@ void process_commands()
 
             clean_up_after_endstop_move();
 
-            set_bed_level_equation_3pts(z_at_pt_1-abl_A_offset, z_at_pt_2-abl_B_offset, z_at_pt_3-abl_C_offset); // Higher values lower nozzle-bed distance
-
+            #ifdef FSR_BED_LEVELING
+              set_bed_level_equation_3pts(z_at_pt_1-abl_A_offset, z_at_pt_2-abl_B_offset, z_at_pt_3-abl_C_offset); // Higher values lower nozzle-bed distance
+            #else
+              set_bed_level_equation_3pts(z_at_pt_1, z_at_pt_2, z_at_pt_3);
+            #endif
 
 #endif // AUTO_BED_LEVELING_GRID
             st_synchronize();
@@ -2381,9 +2387,9 @@ void process_commands()
         SERIAL_PROTOCOLPGM(MSG_Y_MAX);
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
-	  #if defined FSR_BED_LEVELING
-		SERIAL_PROTOCOLPGM(MSG_Z_MIN);
-		//SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
+	    #ifdef FSR_BED_LEVELING
+		    SERIAL_PROTOCOLPGM(MSG_Z_MIN);
+		    //SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));

@@ -217,7 +217,7 @@ void recalc_delta_settings(float radius, float diagonal_rod);
 extern float min_pos[3];
 extern float max_pos[3];
 extern bool axis_known_position[3];
-
+extern float zprobe_zoffset;
 extern int fanSpeed;
 #ifdef BARICUDA
 extern int ValvePressure;
@@ -249,7 +249,6 @@ extern void digipot_i2c_init();
 #ifdef MSM_Printeer
   void run_z_max();
   void led_init();
-  extern float zprobe_zoffset;
 #endif
 #ifdef FSR_BED_LEVELING
   extern float abl_A_offset;
