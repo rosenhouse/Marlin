@@ -533,8 +533,8 @@ void setup()
   #endif
 
   #ifdef MSM_Printeer
-    run_z_max();
     led_init();
+    run_z_max();
   #endif
 }
 
