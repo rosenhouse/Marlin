@@ -6,7 +6,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 ARDUINO_INSTALL_DIR=/usr/share/arduino
-DEPENDENCIES_URL=https://github.com/MissionSt/Marlin/archive/Printrboard-Dependencies.tar.gz
+DEPENDENCIES_URL=https://github.com/MissionSt/Marlin-public/archive/Printrboard-Dependencies.tar.gz
 TARGET_DIR=$ARDUINO_INSTALL_DIR/hardware
 STRIP_COUNT=4
 
