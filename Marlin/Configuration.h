@@ -366,7 +366,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
      // I wouldn't see a reason to go above 3 (=9 probing points on the bed)
     #define AUTO_BED_LEVELING_GRID_POINTS 3
 
-//154x106
   #else  // not AUTO_BED_LEVELING_GRID
     // with no grid, just probe 3 arbitrary points.  A simple cross-product
     // is used to esimate the plane of the print bed
@@ -489,6 +488,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
   #define ABL_ADJUSTMENT 506
   #define ABL_ADJUSTMENT_MIN -5
   #define ABL_ADJUSTMENT_MAX 5
+  #define MM_RETRACT_AFTER_FSR_ABL 3
 #endif
 
 // Custom M code for MSM Printeer

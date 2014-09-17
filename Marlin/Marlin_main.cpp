@@ -930,7 +930,10 @@ static void run_z_probe() {
     zPosition += home_retract_mm(Z_AXIS);
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
-    #ifndef FSR_BED_LEVELING // no second tap if FSR_BED_LEVELING
+    #ifndef FSR_BED_LEVELING // due to the averageing used in FSR_BED_LEVELING,
+                             // the second probing causes the average value to
+                             // be too high and will not trigger properly,
+                             // therefore FSR_BED_LEVELING skips the second probe
       // move back down slowly to find bed
       feedrate = homing_feedrate[Z_AXIS]/4;
       zPosition -= home_retract_mm(Z_AXIS) * 2;
@@ -1074,26 +1077,30 @@ static void homeaxis(int axis) {
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
 
-    #ifdef FSR_BED_LEVELING // ensure Z-retract after FSR_BED_LEVELING homing
-    if (axis == Z_AXIS) {
-      destination[axis] = 3;
-      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-      st_synchronize();
-    }
-    #endif
-    #ifndef FSR_BED_LEVELING // no second tap for FSR_BED_LEVELING homing
+    #ifdef FSR_BED_LEVELING // ensure Z-retract after FSR_BED_LEVELING homing.
+                            //
+                            // due to the averageing used in FSR_BED_LEVELING,
+                            // the second probing causes the average value to
+                            // be too high and will not trigger properly,
+                            // therefore FSR_BED_LEVELING skips the second probe
+      if (axis == Z_AXIS) {
+        destination[axis] = MM_RETRACT_AFTER_FSR_ABL;
+        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+        st_synchronize();
+      }
+    #else
       destination[axis] = -home_retract_mm(axis) * axis_home_dir;
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
       st_synchronize();
 
       destination[axis] = 2*home_retract_mm(axis) * axis_home_dir;
-  #ifdef DELTA
-      feedrate = homing_feedrate[axis]/10;
-  #else
-      feedrate = homing_feedrate[axis]/2 ;
-  #endif
-      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-      st_synchronize();
+      #ifdef DELTA
+          feedrate = homing_feedrate[axis]/10;
+      #else
+          feedrate = homing_feedrate[axis]/2 ;
+      #endif
+          plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+          st_synchronize();
     #endif
 #ifdef DELTA
     // retrace by the amount specified in endstop_adj
@@ -1165,7 +1172,7 @@ void refresh_cmd_timeout(void)
 #endif //FWRETRACT
 
 #ifdef MSM_Printeer
-  void run_z_max()
+  void run_z_max() // move bed to bottom (z-maximum)
   {
     enable_endstops(true);
 
@@ -1190,7 +1197,7 @@ void refresh_cmd_timeout(void)
     #endif
   }
 
-  void led_init()
+  void led_init() // turn on all the lights when the board boots
   {
     pinMode(LED_GREEN_PIN,OUTPUT);
     digitalWrite(LED_GREEN_PIN,HIGH);
@@ -1575,7 +1582,14 @@ void process_commands()
 
                 float measured_z = probe_pt(xProbe, yProbe, z_before);
 			#ifdef FSR_BED_LEVELING
-				// Fudges the value at the fourth point in a 4-pt measurement
+        // In testing we found it is best to apply the fudge amounts to the four corners of the probe grid
+        // but not the inside points.  In a 3x3 grid, we probe
+        //       0  1  2
+        //       3  4  5
+        //       6  7  8
+        //  and thus the four points to fudge are { 0, 2, 6, 8 }
+
+				// Fudges the value at the fist point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
 				// M851 adjustment is applied after ABL transformation is applied
@@ -1585,7 +1599,7 @@ void process_commands()
 				  SERIAL_PROTOCOLLN("A");
 				}
 
-				// Fudges the value at the fourth point in a 4-pt measurement
+				// Fudges the value at the second point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
 				// M851 adjustment is applied after ABL transformation is applied
@@ -1595,11 +1609,11 @@ void process_commands()
 				  SERIAL_PROTOCOLLN("B");
 				}
 
-				// Fudges the value at the fourth point in a 4-pt measurement
+				// Fudges the value at the third point in a 4-pt measurement
 				// A negative input value increases distance between bed and nozzle
 				// A positive input value decreases distance between bed and nozzle
 				// M851 adjustment is applied after ABL transformation is applied
-				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 2) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 5)))
+				if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 2) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 6)))
 				{
 				  measured_z -= abl_C_offset;
 				  SERIAL_PROTOCOLLN("C");
@@ -1656,11 +1670,8 @@ void process_commands()
 
             clean_up_after_endstop_move();
 
-            #ifdef FSR_BED_LEVELING
-              set_bed_level_equation_3pts(z_at_pt_1-abl_A_offset, z_at_pt_2-abl_B_offset, z_at_pt_3-abl_C_offset); // Higher values lower nozzle-bed distance
-            #else
-              set_bed_level_equation_3pts(z_at_pt_1, z_at_pt_2, z_at_pt_3);
-            #endif
+            set_bed_level_equation_3pts(z_at_pt_1, z_at_pt_2, z_at_pt_3);
+
 
 #endif // AUTO_BED_LEVELING_GRID
             st_synchronize();
@@ -2387,10 +2398,7 @@ void process_commands()
         SERIAL_PROTOCOLPGM(MSG_Y_MAX);
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
-	    #ifdef FSR_BED_LEVELING
-        //SERIAL_PROTOCOLPGM(MSG_Z_MIN);
-        //SERIAL_PROTOCOLLN((fsr_z_endstop?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
-      #elif defined(Z_MIN_PIN) && Z_MIN_PIN > -1
+      #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1 && !defined(FSR_BED_LEVELING)
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
@@ -2861,7 +2869,7 @@ void process_commands()
     {
         Config_PrintSettings();
     }
-
+    break;
     #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
     case 540:
     {
@@ -2890,7 +2898,7 @@ void process_commands()
       {
       float value;
         if (code_seen('A')) // First point
-         {
+        {
           value = code_value();
           if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
           {
@@ -2910,38 +2918,38 @@ void process_commands()
           }
         }
       else if (code_seen('B')) // Second point
-         {
-          value = code_value();
-          if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-          {
-            abl_B_offset = value; // compare w/ line 278 of ConfigurationStore.cpp
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLNPGM("ABL B offset has been set");
-            SERIAL_PROTOCOLLN("");
-          }
-          else
-          {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOPGM("Invalid value.  Must be between ");
-            SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-            SERIAL_ECHOPGM(" and ");
-            SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-            SERIAL_PROTOCOLLN("");
-          }
+      {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+        {
+          abl_B_offset = value; // compare w/ line 278 of ConfigurationStore.cpp
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL B offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+        else
+        {
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("Invalid value.  Must be between ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+          SERIAL_ECHOPGM(" and ");
+          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+          SERIAL_PROTOCOLLN("");
+        }
        }
       else if (code_seen('C')) // Third point
-         {
-          value = code_value();
-          if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-          {
-            abl_C_offset = value;
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLNPGM("ABL C offset has been set");
-            SERIAL_PROTOCOLLN("");
-          }
-       }
+      {
+        value = code_value();
+        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
+        {
+          abl_C_offset = value;
+          SERIAL_ECHO_START;
+          SERIAL_ECHOLNPGM("ABL C offset has been set");
+          SERIAL_PROTOCOLLN("");
+        }
+      }
       else if (code_seen('D')) // Fourth point (grid only)
-       {
+      {
         value = code_value();
         if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
         {
@@ -2959,24 +2967,24 @@ void process_commands()
           SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
           SERIAL_PROTOCOLLN("");
         }
-        }
-        else
-        {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL offsets are currently");
-          SERIAL_ECHOPGM("A: ");
-          SERIAL_ECHO(abl_A_offset);
-          SERIAL_ECHOPGM(", B: ");
-          SERIAL_ECHO(abl_B_offset);
-          SERIAL_ECHOPGM(", C: ");
-          SERIAL_ECHO(abl_C_offset);
-          SERIAL_ECHOPGM(", D: ");
-          SERIAL_ECHO(abl_D_offset);
-          SERIAL_PROTOCOLLN("");
-        }
-          break;
       }
-    #endif
+      else // echo current ABL settings
+      {
+        SERIAL_ECHO_START;
+        SERIAL_ECHOLNPGM("ABL offsets are currently");
+        SERIAL_ECHOPGM("A: ");
+        SERIAL_ECHO(abl_A_offset);
+        SERIAL_ECHOPGM(", B: ");
+        SERIAL_ECHO(abl_B_offset);
+        SERIAL_ECHOPGM(", C: ");
+        SERIAL_ECHO(abl_C_offset);
+        SERIAL_ECHOPGM(", D: ");
+        SERIAL_ECHO(abl_D_offset);
+        SERIAL_PROTOCOLLN("");
+      }
+    break;
+    }
+    #endif // FSR_BED_LEVELING
 
     #ifdef CUSTOM_M_CODES
     case CUSTOM_M_CODE_REPORT_BUILD_INFO:

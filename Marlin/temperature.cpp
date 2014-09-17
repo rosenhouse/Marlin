@@ -33,8 +33,8 @@
 #include "ultralcd.h"
 #include "temperature.h"
 #include "watchdog.h"
-#if defined FSR_BED_LEVELING
-#include "fsr_abl.h"
+#ifdef FSR_BED_LEVELING // ADC sampling for FSR_BED_LEVELING during ISR
+  #include "fsr_abl.h"
 #endif
 
 //===========================================================================
@@ -46,8 +46,9 @@ int current_temperature_raw[EXTRUDERS] = { 0 };
 float current_temperature[EXTRUDERS] = { 0.0 };
 int current_temperature_bed_raw = 0;
 float current_temperature_bed = 0.0;
-#if defined FSR_BED_LEVELING
-int current_fsr_value = 0;
+
+#ifdef FSR_BED_LEVELING
+  int current_fsr_value = 0;
 #endif
 
 #ifdef TEMP_SENSOR_1_AS_REDUNDANT
@@ -692,9 +693,10 @@ static void updateTemperaturesFromRawValues()
     #ifdef TEMP_SENSOR_1_AS_REDUNDANT
       redundant_temperature = analog2temp(redundant_temperature_raw, 1);
     #endif
-	#ifdef FSR_BED_LEVELING
-	  FSR_ABL_Reading();
-	#endif
+
+    #ifdef FSR_BED_LEVELING
+      FSR_ABL_Reading();
+    #endif
 
      //Reset the watchdog after we know we have a temperature measurement.
     watchdog_reset();
@@ -1051,7 +1053,7 @@ ISR(TIMER0_COMPB_vect)
   static unsigned long raw_temp_1_value = 0;
   static unsigned long raw_temp_2_value = 0;
   static unsigned long raw_temp_bed_value = 0;
-  static unsigned char temp_state = 9;
+  static unsigned char temp_state = 10;
   static unsigned char pwm_count = (1 << SOFT_PWM_SCALE);
   static unsigned char soft_pwm_0;
   #if (EXTRUDERS > 1) || defined(HEATERS_PARALLEL)
@@ -1174,8 +1176,7 @@ ISR(TIMER0_COMPB_vect)
     case 5: // Measure TEMP_1
       #if defined(TEMP_1_PIN) && (TEMP_1_PIN > -1)
         #ifdef FSR_BED_LEVELING
-          raw_temp_1_sample = ADC;
-          raw_temp_1_value += raw_temp_1_sample;
+          raw_temp_1_value += ADC;
         #else
           raw_temp_1_value += ADC
         #endif
@@ -1219,7 +1220,7 @@ ISR(TIMER0_COMPB_vect)
 	  break;
 	case 9: // Measure FSR_ABL
 	  #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
-	  raw_fsr_value = ADC;
+      raw_fsr_value = ADC; // raw value only, averaging occurs in fsr_abl.cpp
 	  #endif
 	  temp_state = 0;
       temp_count++;
