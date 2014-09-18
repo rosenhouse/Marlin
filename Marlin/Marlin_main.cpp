@@ -2400,6 +2400,7 @@ void process_commands()
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
       #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1 && !defined(FSR_BED_LEVELING)
+        // FSR_BED_LEVEING trigger Z_MIN "instaneously," therefore cannot be displayed via M119
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
