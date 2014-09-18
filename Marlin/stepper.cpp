@@ -207,8 +207,8 @@ void checkHitEndstops()
    endstop_x_hit=false;
    endstop_y_hit=false;
    endstop_z_hit=false;
-   #ifdef MSM_Printeer 
-    endstop_z_max_hit=false;
+   #ifdef MSM_Printeer
+     endstop_z_max_hit=false;
    #endif
 #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED
    if (abort_on_endstop_hit)
@@ -516,13 +516,13 @@ ISR(TIMER1_COMPA_vect)
       count_direction[Z_AXIS]=-1;
       CHECK_ENDSTOPS
       {
-	#if defined FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1
+	    #if defined FSR_BED_LEVELING && defined FSR_PIN && FSR_PIN > -1
           // Run endstop triggered logic, fsr_trigger signals endstop status
-          bool fsr_trigger = FSR_ABL_Trigger();
+        bool fsr_trigger = FSR_ABL_Trigger();
         if(fsr_trigger && old_z_min_endstop && (current_block->steps_z > 0)) {
-            endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
-            endstop_z_hit=true;
-            step_events_completed = current_block->step_event_count;
+          endstops_trigsteps[Z_AXIS] = count_position[Z_AXIS];
+          endstop_z_hit=true;
+          step_events_completed = current_block->step_event_count;
         }
         old_z_min_endstop = fsr_trigger;
           // End of FSR ABL

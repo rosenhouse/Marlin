@@ -92,7 +92,7 @@
 // G413 - Red LED ON
 // G414 - Red LED OFF
 // G415 - Button LED ON
-// G416 - Button LED OFF    
+// G416 - Button LED OFF
 
 // M Codes
 // M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
@@ -1329,10 +1329,6 @@ void process_commands()
 
       home_all_axis = !((code_seen(axis_codes[X_AXIS])) || (code_seen(axis_codes[Y_AXIS])) || (code_seen(axis_codes[Z_AXIS])));
 
-      #ifdef Z_SAFE_HOMING_FIXED_POINT  // Z home always triggers X & Y home first
-        home_all_axis |= code_seen(axis_codes[Z_AXIS]);
-      #endif
-
       #if Z_HOME_DIR > 0                      // If homing away from BED do Z first
       if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
         HOMEAXIS(Z);
@@ -1439,11 +1435,7 @@ void process_commands()
             HOMEAXIS(Z);
           }
 
-          // if X or Y or both hasn't homed, but we do need to Z-home, then
-          // ensure that at least probe is inside bed area.
-          // not that this condition can't occur when doing Z_SAFE_HOMING_FIXED_POINT
-          // because in that case, any Z-home always triggers an X & Y home first
-          #ifndef Z_SAFE_HOMING_FIXED_POINT
+          // Let's see if X and Y are homed and probe is inside bed area.
           if(code_seen(axis_codes[Z_AXIS])) {
             if ( (axis_known_position[X_AXIS]) && (axis_known_position[Y_AXIS]) \
               && (current_position[X_AXIS]+X_PROBE_OFFSET_FROM_EXTRUDER >= X_MIN_POS) \
@@ -1469,7 +1461,6 @@ void process_commands()
                 SERIAL_ECHOLNPGM(MSG_ZPROBE_OUT);
             }
           }
-          #endif // not Z_SAFE_HOMING_FIXED_POINT
         #endif // Z_SAFE_HOMING
       #endif // Z_HOME_DIR
 
@@ -1693,15 +1684,6 @@ void process_commands()
 
     case 30: // G30 Single Z Probe
         {
-
-            #ifdef Z_SAFE_HOMING_FIXED_POINT
-              #define G30_NOT_ALLOWED "G30 not allowed because of Z_SAFE_HOMING_FIXED_POINT"
-              LCD_MESSAGEPGM(G30_NOT_ALLOWED);
-              SERIAL_ECHO_START;
-              SERIAL_ECHOLNPGM(G30_NOT_ALLOWED);
-              break; // abort
-            #endif // Z_SAFE_HOMING_FIXED_POINT
-
             engage_z_probe(); // Engage Z Servo endstop if available
 
             st_synchronize();
@@ -1756,32 +1738,32 @@ void process_commands()
        run_z_max();
       }
       break;
-      case GREEN_LED_ON: 
+      case GREEN_LED_ON:
       {
         digitalWrite(LED_GREEN_PIN,HIGH);
         SERIAL_PROTOCOLPGM("GREEN LED ON \n");
       }
       break;
-      case GREEN_LED_OFF: 
+      case GREEN_LED_OFF:
       {
         digitalWrite(LED_GREEN_PIN,LOW);
         SERIAL_PROTOCOLPGM("GREEN LED OFF \n");
       }
       break;
-      case RED_LED_ON: 
-      {       
+      case RED_LED_ON:
+      {
         digitalWrite(LED_RED_PIN,HIGH);
         SERIAL_PROTOCOLPGM("RED LED ON \n");
       }
       break;
-      case RED_LED_OFF: 
+      case RED_LED_OFF:
       {
         digitalWrite(LED_RED_PIN,LOW);
         SERIAL_PROTOCOLPGM("RED LED OFF \n");
       }
       break;
-      case BUTTON_LED_ON: 
-      {       
+      case BUTTON_LED_ON:
+      {
         digitalWrite(LED_BUTTON_PIN,HIGH);
         SERIAL_PROTOCOLPGM("BUTTON LED ON \n");
       }
