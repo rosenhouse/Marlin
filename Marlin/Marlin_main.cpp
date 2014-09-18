@@ -930,7 +930,7 @@ static void run_z_probe() {
     zPosition += home_retract_mm(Z_AXIS);
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
-    #ifndef FSR_BED_LEVELING // due to the averageing used in FSR_BED_LEVELING,
+    #ifndef FSR_BED_LEVELING // due to the averaging used in FSR_BED_LEVELING,
                              // the second probing causes the average value to
                              // be too high and will not trigger properly,
                              // therefore FSR_BED_LEVELING skips the second probe
@@ -1207,6 +1207,39 @@ void refresh_cmd_timeout(void)
 
     pinMode(LED_BUTTON_PIN, OUTPUT);
     digitalWrite(LED_BUTTON_PIN,HIGH);
+  }
+
+  void update_ABL_adjustment(char abl_point, float * abl_point_offset)
+  {
+    float point_value;
+    if (code_seen(abl_point))
+    {
+      point_value = code_value();
+      if ((ABL_ADJUSTMENT_MIN <= point_value) && (point_value <= ABL_ADJUSTMENT_MAX))
+      {
+        * abl_point_offset = point_value;
+        SERIAL_ECHO_START;
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("ABL ");
+        SERIAL_ECHO(abl_point);
+        SERIAL_ECHOPGM(" offset has been set");
+        SERIAL_PROTOCOLLN("");
+      }
+      else
+      {
+        SERIAL_ECHO_START;
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("ERROR: Invalid value for ABL offset ");
+        SERIAL_ECHO(abl_point);
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("Must be between ");
+        SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+        SERIAL_ECHOPGM(" and ");
+        SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+        SERIAL_PROTOCOLLN("");
+      }
+    }
+    return;
   }
 #endif
 
@@ -2880,82 +2913,14 @@ void process_commands()
       break;
       case ABL_ADJUSTMENT: // Allows fudging of ABL values if necessary
       {
-      float value;
-        if (code_seen('A')) // First point
-        {
-          value = code_value();
-          if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-          {
-            abl_A_offset = value; // lower input values bring nozzle closer to bed
-            SERIAL_ECHO_START;
-            SERIAL_ECHOLNPGM("ABL A offset has been set");
-            SERIAL_PROTOCOLLN("");
-          }
-          else
-          {
-            SERIAL_ECHO_START;
-            SERIAL_ECHOPGM("Invalid value.  Must be between ");
-            SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-            SERIAL_ECHOPGM(" and ");
-            SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-            SERIAL_PROTOCOLLN("");
-          }
-        }
-      else if (code_seen('B')) // Second point
-      {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_B_offset = value; // compare w/ line 278 of ConfigurationStore.cpp
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL B offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-        else
-        {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOPGM("Invalid value.  Must be between ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-          SERIAL_ECHOPGM(" and ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-          SERIAL_PROTOCOLLN("");
-        }
-       }
-      else if (code_seen('C')) // Third point
-      {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_C_offset = value;
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL C offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-      }
-      else if (code_seen('D')) // Fourth point (grid only)
-      {
-        value = code_value();
-        if ((ABL_ADJUSTMENT_MIN <= value) && (value <= ABL_ADJUSTMENT_MAX))
-        {
-          abl_D_offset = value;
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("ABL D offset has been set");
-          SERIAL_PROTOCOLLN("");
-        }
-        else
-        {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOPGM("Invalid value.  Must be between ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
-          SERIAL_ECHOPGM(" and ");
-          SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
-          SERIAL_PROTOCOLLN("");
-        }
-      }
-      else // echo current ABL settings
-      {
+        update_ABL_adjustment('A',&abl_A_offset);
+        update_ABL_adjustment('B',&abl_B_offset);
+        update_ABL_adjustment('C',&abl_C_offset);
+        update_ABL_adjustment('D',&abl_D_offset);
         SERIAL_ECHO_START;
-        SERIAL_ECHOLNPGM("ABL offsets are currently");
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOLNPGM("ABL offsets are:");
+        SERIAL_PROTOCOLLN("");
         SERIAL_ECHOPGM("A: ");
         SERIAL_ECHO(abl_A_offset);
         SERIAL_ECHOPGM(", B: ");
@@ -2965,34 +2930,33 @@ void process_commands()
         SERIAL_ECHOPGM(", D: ");
         SERIAL_ECHO(abl_D_offset);
         SERIAL_PROTOCOLLN("");
-      }
-    break;
+      break;
     }
     #endif // FSR_BED_LEVELING
 
     #ifdef CUSTOM_M_CODES
     case CUSTOM_M_CODE_REPORT_BUILD_INFO:
     {
-        // Print out some diagnostic info
-        SERIAL_ECHOPGM(MSG_MARLIN);
-        SERIAL_ECHOLNPGM(VERSION_STRING);
-        #ifdef STRING_VERSION_CONFIG_H
-          #ifdef STRING_CONFIG_H_AUTHOR
-            SERIAL_ECHO_START;
-            SERIAL_ECHOPGM(MSG_CONFIGURATION_VER);
-            SERIAL_ECHOPGM(STRING_VERSION_CONFIG_H);
-            SERIAL_ECHOPGM(MSG_AUTHOR);
-            SERIAL_ECHOLNPGM(STRING_CONFIG_H_AUTHOR);
-            SERIAL_ECHOPGM("Compiled: ");
-            SERIAL_ECHOLNPGM(__DATE__);
-            SERIAL_PROTOCOLLN("");
-          #endif
+      // Print out some diagnostic info
+      SERIAL_ECHOPGM(MSG_MARLIN);
+      SERIAL_ECHOLNPGM(VERSION_STRING);
+      #ifdef STRING_VERSION_CONFIG_H
+        #ifdef STRING_CONFIG_H_AUTHOR
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM(MSG_CONFIGURATION_VER);
+          SERIAL_ECHOPGM(STRING_VERSION_CONFIG_H);
+          SERIAL_ECHOPGM(MSG_AUTHOR);
+          SERIAL_ECHOLNPGM(STRING_CONFIG_H_AUTHOR);
+          SERIAL_ECHOPGM("Compiled: ");
+          SERIAL_ECHOLNPGM(__DATE__);
+          SERIAL_PROTOCOLLN("");
         #endif
-        SERIAL_ECHO_START;
-        SERIAL_ECHOPGM(MSG_FREE_MEMORY);
-        SERIAL_ECHO(freeMemory());
-        SERIAL_PROTOCOLLN("");
-        break;
+      #endif
+      SERIAL_ECHO_START;
+      SERIAL_ECHOPGM(MSG_FREE_MEMORY);
+      SERIAL_ECHO(freeMemory());
+      SERIAL_PROTOCOLLN("");
+      break;
     }
     case CUSTOM_M_CODE_SET_Z_PROBE_OFFSET:
     {
@@ -3019,10 +2983,10 @@ void process_commands()
       }
       else
       {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("Z probe offset is currently ");
-          SERIAL_ECHO(-zprobe_zoffset);
-          SERIAL_PROTOCOLLN("");
+        SERIAL_ECHO_START;
+        SERIAL_ECHOLNPGM("Z probe offset is currently ");
+        SERIAL_ECHO(-zprobe_zoffset);
+        SERIAL_PROTOCOLLN("");
       }
       break;
     }

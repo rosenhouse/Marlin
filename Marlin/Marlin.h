@@ -249,6 +249,7 @@ extern void digipot_i2c_init();
 #ifdef MSM_Printeer
   void run_z_max();
   void led_init();
+  bool update_ABL_adjustment(char abl_point, float &abl_point_offset);
 #endif
 #ifdef FSR_BED_LEVELING
   extern float abl_A_offset;
