@@ -1175,11 +1175,7 @@ ISR(TIMER0_COMPB_vect)
       break;
     case 5: // Measure TEMP_1
       #if defined(TEMP_1_PIN) && (TEMP_1_PIN > -1)
-        #ifdef FSR_BED_LEVELING
-          raw_temp_1_value += ADC;
-        #else
-          raw_temp_1_value += ADC
-        #endif
+        raw_temp_1_value += ADC;
       #endif
       temp_state = 6;
       break;
@@ -1200,14 +1196,14 @@ ISR(TIMER0_COMPB_vect)
       #if defined(TEMP_2_PIN) && (TEMP_2_PIN > -1)
         raw_temp_2_value += ADC;
       #endif
-	  temp_state = 8;
-	  #ifndef FSR_BED_LEVELING
-      temp_state = 0;
-      temp_count++;
-	  #endif
+      temp_state = 8;
+      #ifndef FSR_BED_LEVELING
+        temp_state = 0;
+        temp_count++;
+      #endif
       break;
-	case 8: // Prepare for FSR_ABL measurement
-	  #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
+    case 8: // Prepare for FSR_ABL measurement
+      #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
         #if FSR_PIN > 7
           ADCSRB = 1<<MUX5;
         #else
@@ -1217,13 +1213,14 @@ ISR(TIMER0_COMPB_vect)
         ADCSRA |= 1<<ADSC; // Start conversion
       #endif
       temp_state = 9;
-	  break;
-	case 9: // Measure FSR_ABL
-	  #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
-      raw_fsr_value = ADC; // raw value only, averaging occurs in fsr_abl.cpp
-	  #endif
-	  temp_state = 0;
+      break;
+    case 9: // Measure FSR_ABL
+      #if defined(FSR_BED_LEVELING) && defined(FSR_PIN) && FSR_PIN > -1
+        raw_fsr_value = ADC; // raw value only, averaging occurs in fsr_abl.cpp
+      #endif
+      temp_state = 0;
       temp_count++;
+      break;
     case 10: //Startup, delay initial temp reading a tiny bit so the hardware can settle.
       temp_state = 0;
       break;
@@ -1249,7 +1246,7 @@ ISR(TIMER0_COMPB_vect)
 #endif
       current_temperature_bed_raw = raw_temp_bed_value;
 
-     #ifdef FSR_BED_LEVELING
+      #ifdef FSR_BED_LEVELING
        current_fsr_value = raw_fsr_value;
      #endif
     }
