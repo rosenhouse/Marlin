@@ -278,7 +278,7 @@ int EtoPPressure=0;
   float delta_segments_per_second= DELTA_SEGMENTS_PER_SECOND;
 #endif
 
-#ifdef FSR_BED_LEVELING
+#ifdef FSR_BED_LEVELING // See comments in G29 code for greater details
   float abl_A_offset;
   float abl_B_offset;
   float abl_C_offset;
