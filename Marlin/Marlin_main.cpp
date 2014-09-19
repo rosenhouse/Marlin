@@ -1208,7 +1208,9 @@ void refresh_cmd_timeout(void)
     pinMode(LED_BUTTON_PIN, OUTPUT);
     digitalWrite(LED_BUTTON_PIN,HIGH);
   }
+#endif
 
+#ifdef FSR_BED_LEVELING
   void update_ABL_adjustment(char abl_point, float * abl_point_offset)
   {
     float point_value;
