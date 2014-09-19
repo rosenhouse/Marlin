@@ -1609,14 +1609,16 @@ void process_commands()
                 float measured_z = probe_pt(xProbe, yProbe, z_before);
 
               #ifdef FSR_BED_LEVELING
-                // In testing we found it is best to apply the fudge amounts to the four corners of the probe grid
+                // In testing we found it is effective to apply the fudge amounts to the four corners of the probe grid
                 // but not the inside points.  In a 3x3 grid, we probe
-                //       0  1  2
-                //       3  4  5
-                //       6  7  8
-                //  and thus the four points to fudge are { 0, 2, 6, 8 }
-
-                // Fudges the value at the fist point in a 4-pt measurement
+                //
+                //     ^  6  7  8
+                //     |  3  4  5
+                //     y  0  1  2
+                //        x ->
+                // and thus the four points to fudge are { 0, 2, 6, 8 }
+                // These points correspond to { A, B, C, D}
+                // FSR BED LEVELING can also be used with a 2 x 2 grid.
                 // A negative input value increases distance between bed and nozzle
                 // A positive input value decreases distance between bed and nozzle
                 // M851 adjustment is applied after ABL transformation is applied
@@ -1624,29 +1626,14 @@ void process_commands()
                 {
                   measured_z -= abl_A_offset;
                 }
-
-                // Fudges the value at the second point in a 4-pt measurement
-                // A negative input value increases distance between bed and nozzle
-                // A positive input value decreases distance between bed and nozzle
-                // M851 adjustment is applied after ABL transformation is applied
                 if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 1) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 2)))
                 {
                   measured_z -= abl_B_offset;
                 }
-
-                // Fudges the value at the third point in a 4-pt measurement
-                // A negative input value increases distance between bed and nozzle
-                // A positive input value decreases distance between bed and nozzle
-                // M851 adjustment is applied after ABL transformation is applied
                 if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 2) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 6)))
                 {
                   measured_z -= abl_C_offset;
                 }
-
-                // Fudges the value at the fourth point in a 4-pt measurement
-                // A negative input value increases distance between bed and nozzle
-                // A positive input value decreases distance between bed and nozzle
-                // M851 adjustment is applied after ABL transformation is applied
                 if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 3) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 8)))
                 {
                   measured_z -= abl_D_offset;
