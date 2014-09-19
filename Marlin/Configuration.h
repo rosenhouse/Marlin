@@ -274,7 +274,7 @@
   #define ENDSTOPPULLUP_ZMAX
   #define ENDSTOPPULLUP_XMIN
   #define ENDSTOPPULLUP_YMIN
-  #define ENDSTOPPULLUP_ZMIN
+  //#define ENDSTOPPULLUP_ZMIN
 #endif
 
 // The pullups are needed if you directly connect a mechanical endswitch between the signal and ground pins.
@@ -323,8 +323,8 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 // Travel limits after homing
 #define X_MAX_POS 154
 #define X_MIN_POS 0
-#define Y_MAX_POS 105 
-#define Y_MIN_POS 0 
+#define Y_MAX_POS 105
+#define Y_MIN_POS 0
 #define Z_MAX_POS 125
 #define Z_MIN_POS 0
 
@@ -336,7 +336,8 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define ENABLE_AUTO_BED_LEVELING // Delete the comment to enable (remove // at the start of the line)
 
 #ifdef ENABLE_AUTO_BED_LEVELING
-
+#define FSR_BED_LEVELING // Use force sensing resistors to perform ABL_ADJUSTMENT
+                         // Requires AUTO_BED_LEVELING_GRID_POINTS = 2 or 3
 // There are 2 different ways to pick the X and Y locations to probe:
 
 //  - "grid" mode
@@ -349,7 +350,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 //    Probe 3 arbitrary points on the bed (that aren't colinear)
 //    You must specify the X & Y coordinates of all 3 points
 
-  //#define AUTO_BED_LEVELING_GRID
+  #define AUTO_BED_LEVELING_GRID
   // with AUTO_BED_LEVELING_GRID, the bed is sampled in a
   // AUTO_BED_LEVELING_GRID_POINTSxAUTO_BED_LEVELING_GRID_POINTS grid
   // and least squares solution is calculated
@@ -357,33 +358,40 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
   #ifdef AUTO_BED_LEVELING_GRID
 
     // set the rectangle in which to probe
-    #define LEFT_PROBE_BED_POSITION 15
-    #define RIGHT_PROBE_BED_POSITION 170
-    #define BACK_PROBE_BED_POSITION 180
-    #define FRONT_PROBE_BED_POSITION 20
+    #define LEFT_PROBE_BED_POSITION 0
+    #define RIGHT_PROBE_BED_POSITION 75
+    #define BACK_PROBE_BED_POSITION 90
+    #define FRONT_PROBE_BED_POSITION 25
 
      // set the number of grid points per dimension
      // I wouldn't see a reason to go above 3 (=9 probing points on the bed)
-    #define AUTO_BED_LEVELING_GRID_POINTS 2
-
+    #define AUTO_BED_LEVELING_GRID_POINTS 3
 
   #else  // not AUTO_BED_LEVELING_GRID
     // with no grid, just probe 3 arbitrary points.  A simple cross-product
     // is used to esimate the plane of the print bed
 
-      #define ABL_PROBE_PT_1_X -10
-      #define ABL_PROBE_PT_1_Y 121
-      #define ABL_PROBE_PT_2_X -10 
-      #define ABL_PROBE_PT_2_Y 32
-      #define ABL_PROBE_PT_3_X 114 
-      #define ABL_PROBE_PT_3_Y 122
+      #define ABL_PROBE_PT_1_X 0
+      #define ABL_PROBE_PT_1_Y 60
+      #define ABL_PROBE_PT_2_X 80
+      #define ABL_PROBE_PT_2_Y 100
+      #define ABL_PROBE_PT_3_X 80
+      #define ABL_PROBE_PT_3_Y 30
 
   #endif // AUTO_BED_LEVELING_GRID
 
+  #ifdef FSR_BED_LEVELING // FSR BED LEVELING required GRID = 2 or 3
+    #ifndef AUTO_BED_LEVELING_GRID_POINTS
+      #error FSR_BED_LEVELING requires AUTO_BED_LEVELING_GRID_POINTS
+    #endif
+    #if (AUTO_BED_LEVELING_GRID_POINTS != 2) && (AUTO_BED_LEVELING_GRID_POINTS != 3)
+      #error FSR_BED_LEVELING requires 2 or 3 AUTO_BED_LEVELING_GRID_POINTS
+    #endif
+  #endif
 
   // these are the offsets to the probe relative to the extruder tip (Hotend - Probe)
-  #define X_PROBE_OFFSET_FROM_EXTRUDER -13.6 
-  #define Y_PROBE_OFFSET_FROM_EXTRUDER 27
+  #define X_PROBE_OFFSET_FROM_EXTRUDER 0
+  #define Y_PROBE_OFFSET_FROM_EXTRUDER 0
   #define Z_PROBE_OFFSET_FROM_EXTRUDER 0
 
   #define ABL_Z_DIRECTION -1 // set to 1 or -1 to control ABL correction direction.  relates to *_HOME_DIR
@@ -407,7 +415,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 //If you have enabled the Bed Auto Leveling and are using the same Z Probe for Z Homing,
 //it is highly recommended you let this Z_SAFE_HOMING enabled!!!
 
-  #define Z_SAFE_HOMING   // This feature is meant to avoid Z homing with probe outside the bed area.
+  //#define Z_SAFE_HOMING   // This feature is meant to avoid Z homing with probe outside the bed area.
                           // When defined, it will:
                           // - Allow Z homing only after X and Y homing AND stepper drivers still enabled
                           // - If stepper drivers timeout, it will need X and Y homing again before Z homing
@@ -418,20 +426,6 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 
     #define Z_SAFE_HOMING_X_POINT -10  // X point for Z homing when homing all axis (G28)
     #define Z_SAFE_HOMING_Y_POINT 121   // Y point for Z homing when homing all axis (G28)
-
-
-
-// On Mission St Mfg's prototype printer, Z-homing and bed probing is only safe
-// within a very narrow region.  Hence Z_SAFE_HOMING_FIXED_POINT!
-//
-// This mode differs from regular Z_SAFE_HOMING in the following ways:
-//    - Before *any* Z home begins, first X & Y are homed and then the probe is
-//      moved in (x,y) to the safe-homing point defined above.
-//      Without this option set, "G28 Z0" will do a straight Z-home from
-//      anywhere in the bed area.  That will cause mayhem on our printer.
-//    - G30 command is disabled, for the same reason.
-    #define Z_SAFE_HOMING_FIXED_POINT
-
 
   #endif
 
@@ -455,7 +449,7 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {80,80,2535,162}       // default steps per unit for Ultimaker
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {40,40,1268,81}       // default steps per unit for Ultimaker
 #define DEFAULT_MAX_FEEDRATE          {400, 400, 3, 12}       // (mm/sec)
 #define DEFAULT_MAX_ACCELERATION      {2500,2500,100,5000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for Skeinforge 40+, for older versions raise them a lot.
 
@@ -483,15 +477,24 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define CUSTOM_G_CODES
 #endif
 
-// Custom M code points
+// Custom M codes and parameters for FSR BED LEVELING
+#ifdef FSR_BED_LEVELING
+  #define ABL_TEST_FUNCTION 505
+  #define ABL_ADJUSTMENT 506
+  #define ABL_ADJUSTMENT_MIN -5
+  #define ABL_ADJUSTMENT_MAX 5
+  #define MM_RETRACT_AFTER_FSR_ABL 3
+#endif
+
+// Custom M code for MSM Printeer
 #ifdef CUSTOM_M_CODES
   #define CUSTOM_M_CODE_REPORT_BUILD_INFO 850
   #define CUSTOM_M_CODE_SET_Z_PROBE_OFFSET 851
-  #define Z_PROBE_OFFSET_RANGE_MIN -3
-  #define Z_PROBE_OFFSET_RANGE_MAX 3
+  #define Z_PROBE_OFFSET_RANGE_MIN -10
+  #define Z_PROBE_OFFSET_RANGE_MAX 10
 #endif
 
-// Custom G code points
+// Custom G code for MSM Printeer
 #ifdef CUSTOM_G_CODES
   #define Move_Z_Max 405
   #define GREEN_LED_ON 411

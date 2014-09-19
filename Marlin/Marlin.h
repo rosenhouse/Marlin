@@ -246,4 +246,16 @@ extern void digipot_i2c_set_current( int channel, float current );
 extern void digipot_i2c_init();
 #endif
 
+#ifdef MSM_Printeer
+  void run_z_max();
+  void led_init();
+  bool update_ABL_adjustment(char abl_point, float &abl_point_offset);
+#endif
+#ifdef FSR_BED_LEVELING
+  extern float abl_A_offset;
+  extern float abl_B_offset;
+  extern float abl_C_offset;
+  extern float abl_D_offset;
+#endif
+
 #endif

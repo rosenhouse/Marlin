@@ -33,6 +33,9 @@
 #include "ultralcd.h"
 #include "temperature.h"
 #include "watchdog.h"
+#ifdef FSR_BED_LEVELING // ADC sampling for FSR_BED_LEVELING during ISR
+  #include "fsr_abl.h"
+#endif
 
 //===========================================================================
 //=============================public variables============================
@@ -43,6 +46,11 @@ int current_temperature_raw[EXTRUDERS] = { 0 };
 float current_temperature[EXTRUDERS] = { 0.0 };
 int current_temperature_bed_raw = 0;
 float current_temperature_bed = 0.0;
+
+#ifdef FSR_BED_LEVELING
+  int current_fsr_value = 0;
+#endif
+
 #ifdef TEMP_SENSOR_1_AS_REDUNDANT
   int redundant_temperature_raw = 0;
   float redundant_temperature = 0.0;
@@ -279,7 +287,7 @@ void PID_autotune(float temp, int extruder, int ncycles)
           cycles++;
           min=temp;
         }
-      } 
+      }
     }
     if(input > (temp + 20)) {
       SERIAL_PROTOCOLLNPGM("PID Autotune failed! Temperature too high");
@@ -685,7 +693,12 @@ static void updateTemperaturesFromRawValues()
     #ifdef TEMP_SENSOR_1_AS_REDUNDANT
       redundant_temperature = analog2temp(redundant_temperature_raw, 1);
     #endif
-    //Reset the watchdog after we know we have a temperature measurement.
+
+    #ifdef FSR_BED_LEVELING
+      FSR_ABL_Reading();
+    #endif
+
+     //Reset the watchdog after we know we have a temperature measurement.
     watchdog_reset();
 
     CRITICAL_SECTION_START;
@@ -1040,7 +1053,7 @@ ISR(TIMER0_COMPB_vect)
   static unsigned long raw_temp_1_value = 0;
   static unsigned long raw_temp_2_value = 0;
   static unsigned long raw_temp_bed_value = 0;
-  static unsigned char temp_state = 8;
+  static unsigned char temp_state = 10;
   static unsigned char pwm_count = (1 << SOFT_PWM_SCALE);
   static unsigned char soft_pwm_0;
   #if (EXTRUDERS > 1) || defined(HEATERS_PARALLEL)
@@ -1053,6 +1066,10 @@ ISR(TIMER0_COMPB_vect)
   static unsigned char soft_pwm_b;
   #endif
   
+  #if defined FSR_BED_LEVELING
+    static unsigned long raw_fsr_value = 0;
+  #endif
+
   if(pwm_count == 0){
     soft_pwm_0 = soft_pwm[0];
     if(soft_pwm_0 > 0) { 
@@ -1179,10 +1196,32 @@ ISR(TIMER0_COMPB_vect)
       #if defined(TEMP_2_PIN) && (TEMP_2_PIN > -1)
         raw_temp_2_value += ADC;
       #endif
+      temp_state = 8;
+      #ifndef FSR_BED_LEVELING
+        temp_state = 0;
+        temp_count++;
+      #endif
+      break;
+    case 8: // Prepare for FSR_ABL measurement
+      #if defined FSR_BED_LEVELING && FSR_PIN && FSR_PIN > -1
+        #if FSR_PIN > 7
+          ADCSRB = 1<<MUX5;
+        #else
+          ADCSRB = 0;
+        #endif
+        ADMUX = ((1 << REFS0) | (FSR_PIN & 0x07));
+        ADCSRA |= 1<<ADSC; // Start conversion
+      #endif
+      temp_state = 9;
+      break;
+    case 9: // Measure FSR_ABL
+      #if defined(FSR_BED_LEVELING) && defined(FSR_PIN) && FSR_PIN > -1
+        raw_fsr_value = ADC; // raw value only, averaging occurs in fsr_abl.cpp
+      #endif
       temp_state = 0;
       temp_count++;
       break;
-    case 8: //Startup, delay initial temp reading a tiny bit so the hardware can settle.
+    case 10: //Startup, delay initial temp reading a tiny bit so the hardware can settle.
       temp_state = 0;
       break;
 //    default:
@@ -1206,6 +1245,10 @@ ISR(TIMER0_COMPB_vect)
       current_temperature_raw[2] = raw_temp_2_value;
 #endif
       current_temperature_bed_raw = raw_temp_bed_value;
+
+      #ifdef FSR_BED_LEVELING
+       current_fsr_value = raw_fsr_value;
+     #endif
     }
     
     temp_meas_ready = true;
@@ -1214,6 +1257,9 @@ ISR(TIMER0_COMPB_vect)
     raw_temp_1_value = 0;
     raw_temp_2_value = 0;
     raw_temp_bed_value = 0;
+    #ifdef FSR_BED_LEVELING
+      raw_fsr_value = 0;
+    #endif
 
 #if HEATER_0_RAW_LO_TEMP > HEATER_0_RAW_HI_TEMP
     if(current_temperature_raw[0] <= maxttemp_raw[0]) {

@@ -61,6 +61,10 @@
 #include <SPI.h>
 #endif
 
+#ifdef FSR_BED_LEVELING
+#include "fsr_abl.h"
+#endif
+
 #define VERSION_STRING  "1.0.0"
 
 // look here for descriptions of G-codes: http://linuxcnc.org/handbook/gcode/g-code.html
@@ -88,7 +92,7 @@
 // G413 - Red LED ON
 // G414 - Red LED OFF
 // G415 - Button LED ON
-// G416 - Button LED OFF    
+// G416 - Button LED OFF
 
 // M Codes
 // M0   - Unconditional stop - Wait for user to press a button on the LCD (Only if ULTRA_LCD is enabled)
@@ -272,7 +276,14 @@ int EtoPPressure=0;
   float delta_diagonal_rod= DELTA_DIAGONAL_ROD;
   float delta_diagonal_rod_2= sq(delta_diagonal_rod);
   float delta_segments_per_second= DELTA_SEGMENTS_PER_SECOND;
-#endif					
+#endif
+
+#ifdef FSR_BED_LEVELING // See comments in G29 code for greater details
+  float abl_A_offset;
+  float abl_B_offset;
+  float abl_C_offset;
+  float abl_D_offset;
+#endif
 
 //===========================================================================
 //=============================Private Variables=============================
@@ -521,22 +532,11 @@ void setup()
     digipot_i2c_init();
   #endif
 
-  // Turn all LEDs on at Startup
   #ifdef MSM_Printeer
-        pinMode(LED_GREEN_PIN,OUTPUT);
-        digitalWrite(LED_GREEN_PIN,HIGH);
-     
-        pinMode(LED_RED_PIN,OUTPUT);
-        digitalWrite(LED_RED_PIN,HIGH);
-     
-        pinMode(LED_BUTTON_PIN, OUTPUT);
-        digitalWrite(LED_BUTTON_PIN,HIGH);
+    led_init();
+    run_z_max();
   #endif
-
-
-
 }
-
 
 void loop()
 {
@@ -916,7 +916,6 @@ static void set_bed_level_equation_3pts(float z_at_pt_1, float z_at_pt_2, float 
 static void run_z_probe() {
     plan_bed_level_matrix.set_to_identity();
     feedrate = homing_feedrate[Z_AXIS];
-
     // move down until you find the bed
     float zPosition = -10;
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
@@ -926,17 +925,21 @@ static void run_z_probe() {
     zPosition = st_get_position_mm(Z_AXIS);
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS]);
 
+
     // move up the retract distance
     zPosition += home_retract_mm(Z_AXIS);
     plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
-
-    // move back down slowly to find bed
-    feedrate = homing_feedrate[Z_AXIS]/4;
-    zPosition -= home_retract_mm(Z_AXIS) * 2;
-    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
-
+    #ifndef FSR_BED_LEVELING // due to the averaging used in FSR_BED_LEVELING,
+                             // the second probing causes the average value to
+                             // be too high and will not trigger properly,
+                             // therefore FSR_BED_LEVELING skips the second probe
+      // move back down slowly to find bed
+      feedrate = homing_feedrate[Z_AXIS]/4;
+      zPosition -= home_retract_mm(Z_AXIS) * 2;
+      plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
+    #endif
     current_position[Z_AXIS] = st_get_position_mm(Z_AXIS);
     // make sure the planner knows where we are as it may be a bit different than we last said to move to
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
@@ -1073,18 +1076,32 @@ static void homeaxis(int axis) {
 
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-    destination[axis] = -home_retract_mm(axis) * axis_home_dir;
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
 
-    destination[axis] = 2*home_retract_mm(axis) * axis_home_dir;
-#ifdef DELTA
-    feedrate = homing_feedrate[axis]/10;
-#else
-    feedrate = homing_feedrate[axis]/2 ;
-#endif
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
+    #ifdef FSR_BED_LEVELING // ensure Z-retract after FSR_BED_LEVELING homing.
+                            //
+                            // due to the averageing used in FSR_BED_LEVELING,
+                            // the second probing causes the average value to
+                            // be too high and will not trigger properly,
+                            // therefore FSR_BED_LEVELING skips the second probe
+      if (axis == Z_AXIS) {
+        destination[axis] = MM_RETRACT_AFTER_FSR_ABL;
+        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+        st_synchronize();
+      }
+    #else
+      destination[axis] = -home_retract_mm(axis) * axis_home_dir;
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
+
+      destination[axis] = 2*home_retract_mm(axis) * axis_home_dir;
+      #ifdef DELTA
+          feedrate = homing_feedrate[axis]/10;
+      #else
+          feedrate = homing_feedrate[axis]/2 ;
+      #endif
+          plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+          st_synchronize();
+    #endif
 #ifdef DELTA
     // retrace by the amount specified in endstop_adj
     if (endstop_adj[axis] * axis_home_dir < 0) {
@@ -1153,6 +1170,80 @@ void refresh_cmd_timeout(void)
     }
   } //retract
 #endif //FWRETRACT
+
+#ifdef MSM_Printeer
+  void run_z_max() // move bed to bottom (z-maximum)
+  {
+    enable_endstops(true);
+
+    // clear any existing bed level matix
+    plan_bed_level_matrix.set_to_identity();
+
+    feedrate = homing_feedrate[Z_AXIS];
+
+    // bed until it hits the z_max_endstop
+    float zPosition = Z_MAX_POS * 1.05;
+    plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
+    st_synchronize();
+
+    // set the current position to Z_MAX position
+    current_position[Z_AXIS] = Z_MAX_POS;
+    plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+
+    endstops_hit_on_purpose();
+
+    #ifdef ENDSTOPS_ONLY_FOR_HOMING
+      enable_endstops(false);
+    #endif
+  }
+
+  void led_init() // turn on all the lights when the board boots
+  {
+    pinMode(LED_GREEN_PIN,OUTPUT);
+    digitalWrite(LED_GREEN_PIN,HIGH);
+
+    pinMode(LED_RED_PIN,OUTPUT);
+    digitalWrite(LED_RED_PIN,HIGH);
+
+    pinMode(LED_BUTTON_PIN, OUTPUT);
+    digitalWrite(LED_BUTTON_PIN,HIGH);
+  }
+#endif
+
+#ifdef FSR_BED_LEVELING
+  void update_ABL_adjustment(char abl_point, float * abl_point_offset)
+  {
+    float point_value;
+    if (code_seen(abl_point))
+    {
+      point_value = code_value();
+      if ((ABL_ADJUSTMENT_MIN <= point_value) && (point_value <= ABL_ADJUSTMENT_MAX))
+      {
+        * abl_point_offset = point_value;
+        SERIAL_ECHO_START;
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("ABL ");
+        SERIAL_ECHO(abl_point);
+        SERIAL_ECHOPGM(" offset has been set");
+        SERIAL_PROTOCOLLN("");
+      }
+      else
+      {
+        SERIAL_ECHO_START;
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("ERROR: Invalid value for ABL offset ");
+        SERIAL_ECHO(abl_point);
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("Must be between ");
+        SERIAL_ECHO(ABL_ADJUSTMENT_MIN);
+        SERIAL_ECHOPGM(" and ");
+        SERIAL_ECHO(ABL_ADJUSTMENT_MAX);
+        SERIAL_PROTOCOLLN("");
+      }
+    }
+    return;
+  }
+#endif
 
 void process_commands()
 {
@@ -1273,10 +1364,6 @@ void process_commands()
 
       home_all_axis = !((code_seen(axis_codes[X_AXIS])) || (code_seen(axis_codes[Y_AXIS])) || (code_seen(axis_codes[Z_AXIS])));
 
-      #ifdef Z_SAFE_HOMING_FIXED_POINT  // Z home always triggers X & Y home first
-        home_all_axis |= code_seen(axis_codes[Z_AXIS]);
-      #endif
-
       #if Z_HOME_DIR > 0                      // If homing away from BED do Z first
       if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
         HOMEAXIS(Z);
@@ -1383,11 +1470,7 @@ void process_commands()
             HOMEAXIS(Z);
           }
 
-          // if X or Y or both hasn't homed, but we do need to Z-home, then
-          // ensure that at least probe is inside bed area.
-          // not that this condition can't occur when doing Z_SAFE_HOMING_FIXED_POINT
-          // because in that case, any Z-home always triggers an X & Y home first
-          #ifndef Z_SAFE_HOMING_FIXED_POINT
+          // Let's see if X and Y are homed and probe is inside bed area.
           if(code_seen(axis_codes[Z_AXIS])) {
             if ( (axis_known_position[X_AXIS]) && (axis_known_position[Y_AXIS]) \
               && (current_position[X_AXIS]+X_PROBE_OFFSET_FROM_EXTRUDER >= X_MIN_POS) \
@@ -1413,7 +1496,6 @@ void process_commands()
                 SERIAL_ECHOLNPGM(MSG_ZPROBE_OUT);
             }
           }
-          #endif // not Z_SAFE_HOMING_FIXED_POINT
         #endif // Z_SAFE_HOMING
       #endif // Z_HOME_DIR
 
@@ -1526,6 +1608,38 @@ void process_commands()
 
                 float measured_z = probe_pt(xProbe, yProbe, z_before);
 
+              #ifdef FSR_BED_LEVELING
+                // In testing we found it is effective to apply the fudge amounts to the four corners of the probe grid
+                // but not the inside points.  In a 3x3 grid, we probe
+                //
+                //     ^  6  7  8
+                //     |  3  4  5
+                //     y  0  1  2
+                //        x ->
+                // and thus the four points to fudge are { 0, 2, 6, 8 }
+                // These points correspond to { A, B, C, D}
+                // FSR BED LEVELING can also be used with a 2 x 2 grid.
+                // A negative input value increases distance between bed and nozzle
+                // A positive input value decreases distance between bed and nozzle
+                // M851 adjustment is applied after ABL transformation is applied
+                if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 0) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 0)))
+                {
+                  measured_z -= abl_A_offset;
+                }
+                if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 1) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 2)))
+                {
+                  measured_z -= abl_B_offset;
+                }
+                if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 2) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 6)))
+                {
+                  measured_z -= abl_C_offset;
+                }
+                if ((AUTO_BED_LEVELING_GRID_POINTS == 2) && (probePointCounter == 3) || ((AUTO_BED_LEVELING_GRID_POINTS == 3) && (probePointCounter == 8)))
+                {
+                  measured_z -= abl_D_offset;
+                }
+              #endif
+
                 eqnBVector[probePointCounter] = measured_z;
 
                 eqnAMatrix[probePointCounter + 0*AUTO_BED_LEVELING_GRID_POINTS*AUTO_BED_LEVELING_GRID_POINTS] = xProbe;
@@ -1588,15 +1702,6 @@ void process_commands()
 
     case 30: // G30 Single Z Probe
         {
-
-            #ifdef Z_SAFE_HOMING_FIXED_POINT
-              #define G30_NOT_ALLOWED "G30 not allowed because of Z_SAFE_HOMING_FIXED_POINT"
-              LCD_MESSAGEPGM(G30_NOT_ALLOWED);
-              SERIAL_ECHO_START;
-              SERIAL_ECHOLNPGM(G30_NOT_ALLOWED);
-              break; // abort
-            #endif // Z_SAFE_HOMING_FIXED_POINT
-
             engage_z_probe(); // Engage Z Servo endstop if available
 
             st_synchronize();
@@ -1644,66 +1749,43 @@ void process_commands()
       }
       break;
 
-      // Custom G-Codes for MSM
+      // Custom G-Codes for MSM Printeer
       #ifdef CUSTOM_G_CODES
-
       case Move_Z_Max:
       {
-       enable_endstops(true);
-
-       // clear any existing bed level matix
-       plan_bed_level_matrix.set_to_identity();
-
-       feedrate = homing_feedrate[Z_AXIS];
-       
-       // bed until it hits the z_max_endstop
-       float zPosition = Z_MAX_POS * 3;
-       plan_buffer_line(current_position[X_AXIS], current_position[Y_AXIS], zPosition, current_position[E_AXIS], feedrate/60, active_extruder);
-       st_synchronize();
-
-       // set the current position to Z_MAX position
-       current_position[Z_AXIS] = Z_MAX_POS;
-       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-        
-       endstops_hit_on_purpose();
+       run_z_max();
       }
       break;
-
-      case GREEN_LED_ON: 
+      case GREEN_LED_ON:
       {
         digitalWrite(LED_GREEN_PIN,HIGH);
         SERIAL_PROTOCOLPGM("GREEN LED ON \n");
       }
       break;
-
-      case GREEN_LED_OFF: 
+      case GREEN_LED_OFF:
       {
         digitalWrite(LED_GREEN_PIN,LOW);
         SERIAL_PROTOCOLPGM("GREEN LED OFF \n");
       }
       break;
-
-      case RED_LED_ON: 
-      {       
+      case RED_LED_ON:
+      {
         digitalWrite(LED_RED_PIN,HIGH);
         SERIAL_PROTOCOLPGM("RED LED ON \n");
       }
       break;
-
-      case RED_LED_OFF: 
+      case RED_LED_OFF:
       {
         digitalWrite(LED_RED_PIN,LOW);
         SERIAL_PROTOCOLPGM("RED LED OFF \n");
       }
       break;
-
-      case BUTTON_LED_ON: 
-      {       
+      case BUTTON_LED_ON:
+      {
         digitalWrite(LED_BUTTON_PIN,HIGH);
-        SERIAL_PROTOCOLPGM("RED LED OFF \n");
+        SERIAL_PROTOCOLPGM("BUTTON LED ON \n");
       }
       break;
-
       case BUTTON_LED_OFF:
       {
         digitalWrite(LED_BUTTON_PIN,LOW);
@@ -1711,7 +1793,6 @@ void process_commands()
       }
       break;
       #endif
-
     }
   }
 
@@ -2318,7 +2399,8 @@ void process_commands()
         SERIAL_PROTOCOLPGM(MSG_Y_MAX);
         SERIAL_PROTOCOLLN(((READ(Y_MAX_PIN)^Y_MAX_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
-      #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1
+      #if defined(Z_MIN_PIN) && Z_MIN_PIN > -1 && !defined(FSR_BED_LEVELING)
+        // FSR_BED_LEVEING trigger Z_MIN "instaneously," therefore cannot be displayed via M119
         SERIAL_PROTOCOLPGM(MSG_Z_MIN);
         SERIAL_PROTOCOLLN(((READ(Z_MIN_PIN)^Z_MIN_ENDSTOP_INVERTING)?MSG_ENDSTOP_HIT:MSG_ENDSTOP_OPEN));
       #endif
@@ -2798,29 +2880,68 @@ void process_commands()
     break;
     #endif
 
+    #ifdef FSR_BED_LEVELING
+      case ABL_TEST_FUNCTION: //  Test function for FSR ABL
+      {
+        #ifdef FSR_BED_LEVELING
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("ADC Reading: ");
+          SERIAL_ECHOLN(FSR_ABL_Get_Read());
+          SERIAL_ECHOPGM(" Rolling Avg: ");
+          SERIAL_ECHOLN(FSR_ABL_Get_Avg());
+          SERIAL_PROTOCOLLN("");
+        #else
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM("NO FSR ABL");
+        #endif
+      }
+      break;
+      case ABL_ADJUSTMENT: // Allows fudging of ABL values if necessary
+      {
+        update_ABL_adjustment('A',&abl_A_offset);
+        update_ABL_adjustment('B',&abl_B_offset);
+        update_ABL_adjustment('C',&abl_C_offset);
+        update_ABL_adjustment('D',&abl_D_offset);
+        SERIAL_ECHO_START;
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOLNPGM("ABL offsets are:");
+        SERIAL_PROTOCOLLN("");
+        SERIAL_ECHOPGM("A: ");
+        SERIAL_ECHO(abl_A_offset);
+        SERIAL_ECHOPGM(", B: ");
+        SERIAL_ECHO(abl_B_offset);
+        SERIAL_ECHOPGM(", C: ");
+        SERIAL_ECHO(abl_C_offset);
+        SERIAL_ECHOPGM(", D: ");
+        SERIAL_ECHO(abl_D_offset);
+        SERIAL_PROTOCOLLN("");
+      break;
+    }
+    #endif // FSR_BED_LEVELING
+
     #ifdef CUSTOM_M_CODES
     case CUSTOM_M_CODE_REPORT_BUILD_INFO:
     {
-        // Print out some diagnostic info
-        SERIAL_ECHOPGM(MSG_MARLIN);
-        SERIAL_ECHOLNPGM(VERSION_STRING);
-        #ifdef STRING_VERSION_CONFIG_H
-          #ifdef STRING_CONFIG_H_AUTHOR
-            SERIAL_ECHO_START;
-            SERIAL_ECHOPGM(MSG_CONFIGURATION_VER);
-            SERIAL_ECHOPGM(STRING_VERSION_CONFIG_H);
-            SERIAL_ECHOPGM(MSG_AUTHOR);
-            SERIAL_ECHOLNPGM(STRING_CONFIG_H_AUTHOR);
-            SERIAL_ECHOPGM("Compiled: ");
-            SERIAL_ECHOLNPGM(__DATE__);
-            SERIAL_PROTOCOLLN("");
-          #endif
+      // Print out some diagnostic info
+      SERIAL_ECHOPGM(MSG_MARLIN);
+      SERIAL_ECHOLNPGM(VERSION_STRING);
+      #ifdef STRING_VERSION_CONFIG_H
+        #ifdef STRING_CONFIG_H_AUTHOR
+          SERIAL_ECHO_START;
+          SERIAL_ECHOPGM(MSG_CONFIGURATION_VER);
+          SERIAL_ECHOPGM(STRING_VERSION_CONFIG_H);
+          SERIAL_ECHOPGM(MSG_AUTHOR);
+          SERIAL_ECHOLNPGM(STRING_CONFIG_H_AUTHOR);
+          SERIAL_ECHOPGM("Compiled: ");
+          SERIAL_ECHOLNPGM(__DATE__);
+          SERIAL_PROTOCOLLN("");
         #endif
-        SERIAL_ECHO_START;
-        SERIAL_ECHOPGM(MSG_FREE_MEMORY);
-        SERIAL_ECHO(freeMemory());
-        SERIAL_PROTOCOLLN("");
-        break;
+      #endif
+      SERIAL_ECHO_START;
+      SERIAL_ECHOPGM(MSG_FREE_MEMORY);
+      SERIAL_ECHO(freeMemory());
+      SERIAL_PROTOCOLLN("");
+      break;
     }
     case CUSTOM_M_CODE_SET_Z_PROBE_OFFSET:
     {
@@ -2847,10 +2968,10 @@ void process_commands()
       }
       else
       {
-          SERIAL_ECHO_START;
-          SERIAL_ECHOLNPGM("Z probe offset is currently ");
-          SERIAL_ECHO(-zprobe_zoffset);
-          SERIAL_PROTOCOLLN("");
+        SERIAL_ECHO_START;
+        SERIAL_ECHOLNPGM("Z probe offset is currently ");
+        SERIAL_ECHO(-zprobe_zoffset);
+        SERIAL_PROTOCOLLN("");
       }
       break;
     }
