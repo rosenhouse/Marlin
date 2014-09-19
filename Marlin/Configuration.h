@@ -336,7 +336,8 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 #define ENABLE_AUTO_BED_LEVELING // Delete the comment to enable (remove // at the start of the line)
 
 #ifdef ENABLE_AUTO_BED_LEVELING
-#define FSR_BED_LEVELING // Use force sensing resistors to perform ABL
+#define FSR_BED_LEVELING // Use force sensing resistors to perform ABL_ADJUSTMENT
+                         // Requires AUTO_BED_LEVELING_GRID_POINTS = 2 or 3
 // There are 2 different ways to pick the X and Y locations to probe:
 
 //  - "grid" mode
@@ -379,6 +380,14 @@ const bool Z_MAX_ENDSTOP_INVERTING = false; // set to true to invert the logic o
 
   #endif // AUTO_BED_LEVELING_GRID
 
+  #ifdef FSR_BED_LEVELING // FSR BED LEVELING required GRID = 2 or 3
+    #ifndef AUTO_BED_LEVELING_GRID_POINTS
+      #error FSR_BED_LEVELING requires AUTO_BED_LEVELING_GRID_POINTS
+    #endif
+    #if (AUTO_BED_LEVELING_GRID_POINTS != 2) && (AUTO_BED_LEVELING_GRID_POINTS != 3)
+      #error FSR_BED_LEVELING requires 2 or 3 AUTO_BED_LEVELING_GRID_POINTS
+    #endif
+  #endif
 
   // these are the offsets to the probe relative to the extruder tip (Hotend - Probe)
   #define X_PROBE_OFFSET_FROM_EXTRUDER 0
